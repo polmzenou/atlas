@@ -1,6 +1,6 @@
 # ATLAS — Audit et contrat d'intégration des interventions
 
-**Paul Mehr** — Mastère 2 Informatique, Innov Campus / Ynov Strasbourg — travail individuel.
+**Paul Mehr** — Mastère 2 Informatique, Ynov Strasbourg — travail individuel.
 Mission lancée le 27/10/2026, remise le 17/11/2026. Environnement entièrement fictif : aucune
 donnée réelle, aucun secret, domaine `.invalid`.
 
