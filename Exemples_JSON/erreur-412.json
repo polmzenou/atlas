@@ -1,0 +1,9 @@
+{
+  "type": "https://api.atlas.invalid/problems/precondition-failed",
+  "title": "Intervention modifiée entre-temps",
+  "status": 412,
+  "code": "PRECONDITION_FAILED",
+  "detail": "If-Match \"rev-2\" ne correspond plus à la révision 3.",
+  "correlationId": "corr-0006",
+  "currentRevision": 3
+}

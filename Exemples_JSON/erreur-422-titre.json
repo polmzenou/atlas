@@ -1,0 +1,14 @@
+{
+  "type": "https://api.atlas.invalid/problems/validation-failed",
+  "title": "Données invalides",
+  "status": 422,
+  "code": "VALIDATION_FAILED",
+  "correlationId": "corr-0008",
+  "errors": [
+    {
+      "field": "title",
+      "code": "INVALID_LENGTH",
+      "message": "Le titre doit contenir 5 à 120 caractères hors espaces aux extrémités."
+    }
+  ]
+}

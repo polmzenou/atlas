@@ -1,0 +1,13 @@
+{
+  "id": "I100",
+  "tenantId": "C01",
+  "siteId": "S01",
+  "title": "Porte bloquée accueil",
+  "priority": "HIGH",
+  "status": "NEW",
+  "technicianId": null,
+  "createdAt": "2026-10-20T08:00:00Z",
+  "updatedAt": "2026-10-27T09:00:01Z",
+  "createdBy": "U02",
+  "revision": 3
+}

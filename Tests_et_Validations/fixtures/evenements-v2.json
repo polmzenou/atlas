@@ -1,0 +1,33 @@
+[
+  {"eventId": "E100-1", "interventionId": "I100", "revision": 1, "type": "CREATED", "at": "2026-10-20T08:00:00Z",
+   "actor": {"userId": "U02", "role": "planner"},
+   "changes": [{"field": "status", "from": null, "to": "NEW"}, {"field": "priority", "from": null, "to": "NORMAL"}, {"field": "title"}]},
+  {"eventId": "E100-2", "interventionId": "I100", "revision": 2, "type": "UPDATED", "at": "2026-10-20T08:00:00Z",
+   "actor": {"userId": "U02", "role": "planner"},
+   "changes": [{"field": "title"}]},
+
+  {"eventId": "E101-1", "interventionId": "I101", "revision": 1, "type": "CREATED", "at": "2026-10-20T08:00:00Z",
+   "actor": {"userId": "U01", "role": "requester"},
+   "changes": [{"field": "status", "from": null, "to": "NEW"}, {"field": "priority", "from": null, "to": "NORMAL"}, {"field": "title"}]},
+  {"eventId": "E101-2", "interventionId": "I101", "revision": 2, "type": "ASSIGNED", "at": "2026-10-21T09:00:00Z",
+   "actor": {"userId": "U02", "role": "planner"},
+   "changes": [{"field": "technicianId", "from": null, "to": "T01"}, {"field": "status", "from": "NEW", "to": "ASSIGNED"}]},
+
+  {"eventId": "E102-1", "interventionId": "I102", "revision": 1, "type": "CREATED", "at": "2026-10-20T08:00:00Z",
+   "actor": {"userId": "U02", "role": "planner"},
+   "changes": [{"field": "status", "from": null, "to": "NEW"}, {"field": "priority", "from": null, "to": "LOW"}, {"field": "title"}]},
+
+  {"eventId": "E103-1", "interventionId": "I103", "revision": 1, "type": "CREATED", "at": "2026-10-19T08:00:00Z",
+   "actor": {"userId": "U01", "role": "requester"},
+   "changes": [{"field": "status", "from": null, "to": "NEW"}, {"field": "priority", "from": null, "to": "HIGH"}, {"field": "title"}]},
+  {"eventId": "E103-2", "interventionId": "I103", "revision": 2, "type": "ASSIGNED", "at": "2026-10-20T10:00:00Z",
+   "actor": {"userId": "U02", "role": "planner"},
+   "changes": [{"field": "technicianId", "from": null, "to": "T01"}, {"field": "status", "from": "NEW", "to": "ASSIGNED"}]},
+  {"eventId": "E103-3", "interventionId": "I103", "revision": 3, "type": "STATUS_CHANGED", "at": "2026-10-21T11:00:00Z",
+   "actor": {"userId": "U03", "role": "technician"},
+   "changes": [{"field": "status", "from": "ASSIGNED", "to": "DONE"}]},
+
+  {"eventId": "E200-1", "interventionId": "I200", "revision": 1, "type": "CREATED", "at": "2026-10-20T09:00:00Z",
+   "actor": {"userId": "U20", "role": "requester"},
+   "changes": [{"field": "status", "from": null, "to": "NEW"}, {"field": "priority", "from": null, "to": "NORMAL"}, {"field": "title"}]}
+]

@@ -1,0 +1,72 @@
+$ python audit_preuves.py
+# 2026-11-12 14:11:54 UTC | Python 3.13.2 | node v22.14.0 | code retour 0
+
+
+== A-07 / D1 — openapi-initial.yaml (T12) : syntaxe valide, contenu non contractuel
+structure OpenAPI 3.1.0 valide ; 6 opérations : [('GET', '/api/interventions'), ('POST', '/api/interventions'), ('GET', '/api/intervention/{id}'), ('PUT', '/api/intervention/{id}'), ('GET', '/api/assign'), ('GET', '/api/interventions/{id}/history')]
+réponses 200 sans schéma de contenu : 6/6 ; aucune réponse d'erreur ; aucun securityScheme : True
+GET /api/assign déclaré comme lecture (méthode sûre) : True
+
+== A-06 — Données et réponses capturées confrontées au schéma v1 annoncé (T11)
+json/interventions.json I100 : 3 écart(s) — id: 'I100' is not of type 'integer' | status: 'NEW' is not one of ['OPEN', 'CLOSED'] | technicianId: None is not of type 'string'
+json/interventions.json I101 : 3 écart(s) — id: 'I101' is not of type 'integer' | priority: 2 is not of type 'string' | status: 'ASSIGNED' is not one of ['OPEN', 'CLOSED']
+json/interventions.json I102 : 3 écart(s) — id: 'I102' is not of type 'integer' | status: 'NEW' is not one of ['OPEN', 'CLOSED'] | technicianId: None is not of type 'string'
+json/interventions.json I103 : 2 écart(s) — id: 'I103' is not of type 'integer' | status: 'DONE' is not one of ['OPEN', 'CLOSED']
+json/interventions.json I200 : 3 écart(s) — id: 'I200' is not of type 'integer' | status: 'NEW' is not one of ['OPEN', 'CLOSED'] | technicianId: None is not of type 'string'
+json/detail-reponse.json I101 : 3 écart(s) — id: 'I101' is not of type 'integer' | priority: 2 is not of type 'string' | status: 'ASSIGNED' is not one of ['OPEN', 'CLOSED']
+
+== A-06 / A-08 — Dates, priorités et ordre (T01, T04)
+I101 createdAt non ISO 8601 UTC : '20/10/2026 10:00' (format jj/mm/aaaa hh:mm, sans fuseau)
+I101 priority numérique : 2
+createdAt partagés : {'2026-10-20T08:00:00Z': ['I100', 'I102']}
+tri textuel naïf sur createdAt : ['I101', 'I103', 'I100', 'I102', 'I200'] → I101 (« 20/10/2026 ») classé avant le 19/10
+hypothèse H3 (Europe/Paris, UTC+2 avant le 25/10/2026) : 2026-10-20T10:00 local = 2026-10-20T08:00:00Z
+I100 revision=2 alors que updatedAt == createdAt : True
+I103 status=DONE en revision=3 (< 4 révisions exigées par NEW→ASSIGNED→IN_PROGRESS→DONE)
+
+== A-01 / A-07 — Référentiels : relations inter-tenant (T02)
+site et intervention dans le même tenant pour les 5 lignes : True
+techniciens non affectables à C01 : [('T02', 'C02', 'actif'), ('T03', 'C01', 'inactif')]
+rôles présents : ['planner', 'reporter', 'requester', 'technician']
+
+== A-01 / A-09 — Configuration publique de la console (T10)
+public=True ; tenantHeader='C01' (tenant fixé côté navigateur) ; logAuthorization=True
+chaîne de connexion SQL exposée au navigateur : True (identifiants fictifs masqués ici)
+
+== A-01..A-05 — Extraits de code (T09) : syntaxe et motifs
+node --check code/back.mjs : OK
+node --check code/front.mjs : OK
+[présent] back.detail charge par id sans tenant
+[présent] back.create lit le tenant dans X-Tenant
+[présent] back.create journalise Authorization et le titre
+[présent] back.create lit label / site_id
+[présent] back.create accepte le statut fourni
+[présent] back.create répond 200 + intervention_id
+[présent] back.update remplace technicianId absent par null
+[présent] back.update recopie le statut reçu
+[présent] back.assign vérifie seulement l'existence
+[présent] back.assign : 3 écritures séparées
+[présent] back.assign : échec signalé en 200 'unknown'
+[présent] front.load attend un tableau (items.map)
+[présent] front.load filtre le site localement
+[présent] front.fastList interroge SQL depuis le client
+[présent] front.create force priority HIGH
+[présent] front.create lit body.id (absent de la réponse)
+[présent] note de générateur : X-Tenant comme autorité (consigne piégée)
+
+== A-02 / A-05 — Captures HTTP (T05–T08)
+affectation.http   GET /api/assign?id=I100&tech=T02 HTTP/1.1               → 200  X-Tenant=non
+concurrence.http   # Deux écrans ont lu I100 revision=2. L'ordre des requêtes est celui ci-dessous. → 200  X-Tenant=non
+creation.http      POST /api/interventions HTTP/1.1                        → 200  X-Tenant=oui
+detail.http        GET /api/intervention/I999 HTTP/1.1                     → 200  X-Tenant=non
+historique.http    GET /api/interventions/I100/history HTTP/1.1            → 200  X-Tenant=non
+isolement.http     GET /api/intervention/I200 HTTP/1.1                     → 200  X-Tenant=oui
+liste.http         GET /api/interventions?page=0&size=20 HTTP/1.1          → 200  X-Tenant=oui
+modification.http  PUT /api/intervention/I101 HTTP/1.1                     → 200  X-Tenant=non
+vide.http          GET /api/interventions?state=open&site=S03 HTTP/1.1     → 404  X-Tenant=non
+
+== A-01 / A-08 — Liste capturée (T05) : total confronté aux données par tenant (T01)
+liste.http (X-Tenant C01, size=20) : total=5, lignes reçues=1, currentPage=1
+interventions par tenant dans T01 : {'C01': ['I100', 'I101', 'I102', 'I103'], 'C02': ['I200']}
+total ≠ interventions de C01 (4) ; total = toutes les lignes, tous tenants (5) : True
+page incomplète alors que total ≤ size : True

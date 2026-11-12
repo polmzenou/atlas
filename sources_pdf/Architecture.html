@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Architecture ATLAS</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  svg { width: 100%; height: auto; display: block; }
+  .legend span { display: inline-block; margin-right: 5mm; font-size: 8.5pt; }
+  .sw { display: inline-block; width: 8mm; height: 0; border-top: 2px solid #1f4e8c; vertical-align: middle; margin-right: 1.5mm; }
+  .sw.red { border-top: 2px dashed #b42318; }
+  .sw.zone { height: 3mm; border: 1.5px dashed #8a93a6; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <h1>Architecture — existant et cible</h1>
+  <div class="sub">ATLAS — interventions : flux, frontières de confiance, responsabilités et migration</div>
+  <dl>
+    <dt>Auteur</dt><dd>Paul Mehr — Mastère 2 Informatique (travail individuel)</dd>
+    <dt>Version</dt><dd>1.0 — 17 novembre 2026</dd>
+    <dt>Contenu</dt><dd>1. Existant reconstitué · 2. Architecture cible · 3. Séquence HTTP · 4. Matrice des responsabilités · 5. Accès aux données · 6. Continuité v1 et migration</dd>
+    <dt>Références</dt><dd>Rapport_Audit.pdf (constats A-xx) · Decisions_Techniques.md (ADR-1 à 5) · Contrat_API.yaml</dd>
+  </dl>
+</section>
+
+<h2>1. Existant reconstitué</h2>
+<p>La cartographie officielle (P05, 10/09, annotée le 20/10) ne montre que des appels vers l'API. Le recoupement
+de la configuration publique (T10), des extraits de code (T09), des captures (T05–T08) et des échanges (P08) fait
+apparaître <b>trois flux non déclarés</b>, en rouge ci-dessous. C'est une reconstitution à partir des pièces, pas une
+preuve d'implémentation complète.</p>
+<figure>
+<svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1f4e8c"/></marker>
+    <marker id="r" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b42318"/></marker>
+  </defs>
+  <rect x="8" y="30" width="210" height="360" fill="#fbf3f2" stroke="#b42318" stroke-dasharray="6 4"/>
+  <text x="18" y="50" font-size="12" font-weight="700" fill="#b42318">Clients — zone NON fiable</text>
+  <text x="18" y="64" font-size="10" fill="#5b6475">(navigateur, mobile, poste BI)</text>
+  <rect x="300" y="30" width="220" height="360" fill="#f3f5f9" stroke="#8a93a6" stroke-dasharray="6 4"/>
+  <text x="310" y="50" font-size="12" font-weight="700" fill="#1d2433">Serveurs ATLAS</text>
+  <rect x="595" y="30" width="157" height="360" fill="#f3f5f9" stroke="#8a93a6" stroke-dasharray="6 4"/>
+  <text x="605" y="50" font-size="12" font-weight="700" fill="#1d2433">Données</text>
+
+  <rect x="25" y="80" width="175" height="46" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="112" y="100" font-size="11" text-anchor="middle" font-weight="600">Portail Client 1.8</text>
+  <text x="112" y="116" font-size="9.5" text-anchor="middle" fill="#5b6475">12 tenants · champs FR</text>
+  <rect x="25" y="150" width="175" height="62" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="112" y="170" font-size="11" text-anchor="middle" font-weight="600">Console Ops 2.4</text>
+  <text x="112" y="185" font-size="9.5" text-anchor="middle" fill="#b42318">config publique : tenant C01,</text>
+  <text x="112" y="199" font-size="9.5" text-anchor="middle" fill="#b42318">chaîne SQL, logAuthorization</text>
+  <rect x="25" y="236" width="175" height="46" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="112" y="256" font-size="11" text-anchor="middle" font-weight="600">Terrain 0.9</text>
+  <text x="112" y="272" font-size="9.5" text-anchor="middle" fill="#b42318">calcule les transitions</text>
+  <rect x="25" y="306" width="175" height="46" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="112" y="326" font-size="11" text-anchor="middle" font-weight="600">Export BI 0.6</text>
+  <text x="112" y="342" font-size="9.5" text-anchor="middle" fill="#5b6475">lectures v1 nocturnes</text>
+
+  <rect x="320" y="80" width="180" height="46" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="410" y="100" font-size="11" text-anchor="middle" font-weight="600">Adaptateur v1</text>
+  <text x="410" y="116" font-size="9.5" text-anchor="middle" fill="#5b6475">conversion de noms de champs</text>
+  <rect x="320" y="180" width="180" height="92" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="410" y="200" font-size="11" text-anchor="middle" font-weight="600">API interventions (monolithe)</text>
+  <text x="410" y="217" font-size="9.5" text-anchor="middle" fill="#b42318">tenant lu dans X-Tenant</text>
+  <text x="410" y="231" font-size="9.5" text-anchor="middle" fill="#b42318">« enregistre ce que l'écran a validé »</text>
+  <text x="410" y="245" font-size="9.5" text-anchor="middle" fill="#b42318">GET /api/assign avec effet</text>
+  <text x="410" y="259" font-size="9.5" text-anchor="middle" fill="#b42318">erreurs en 200 / texte</text>
+  <rect x="320" y="320" width="180" height="40" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="410" y="338" font-size="11" text-anchor="middle" font-weight="600">Journaux techniques</text>
+  <text x="410" y="352" font-size="9.5" text-anchor="middle" fill="#b42318">Authorization + titres</text>
+
+  <path d="M620 80 h110 v15 a55 10 0 0 1 -110 0 z" fill="#fff" stroke="#1d2433"/>
+  <ellipse cx="675" cy="80" rx="55" ry="10" fill="#fff" stroke="#1d2433"/>
+  <rect x="620" y="80" width="110" height="80" fill="#fff" stroke="none"/>
+  <line x1="620" y1="80" x2="620" y2="160" stroke="#1d2433"/><line x1="730" y1="80" x2="730" y2="160" stroke="#1d2433"/>
+  <ellipse cx="675" cy="160" rx="55" ry="10" fill="#fff" stroke="#1d2433"/>
+  <ellipse cx="675" cy="80" rx="55" ry="10" fill="#fff" stroke="#1d2433"/>
+  <text x="675" y="118" font-size="11" text-anchor="middle" font-weight="600">PostgreSQL</text>
+  <text x="675" y="134" font-size="9.5" text-anchor="middle" fill="#5b6475">PK seules, pas de FK</text>
+  <text x="675" y="147" font-size="9.5" text-anchor="middle" fill="#5b6475">tenant/site/technicien</text>
+  <rect x="612" y="250" width="126" height="46" rx="5" fill="#fff" stroke="#1d2433"/>
+  <text x="675" y="270" font-size="11" text-anchor="middle" font-weight="600">Fournisseur</text>
+  <text x="675" y="286" font-size="11" text-anchor="middle" font-weight="600">d'identité</text>
+
+  <line x1="200" y1="103" x2="318" y2="103" stroke="#1f4e8c" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="258" y="97" font-size="9" text-anchor="middle">HTTPS v1</text>
+  <path d="M200 329 C 270 329 270 120 318 118" fill="none" stroke="#1f4e8c" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="250" y="300" font-size="9" text-anchor="middle">HTTPS v1</text>
+  <line x1="410" y1="126" x2="410" y2="178" stroke="#1f4e8c" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="200" y1="185" x2="318" y2="205" stroke="#1f4e8c" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="258" y="186" font-size="9" text-anchor="middle">/api + Bearer</text>
+  <text x="258" y="216" font-size="9" text-anchor="middle" fill="#b42318">+ X-Tenant</text>
+  <line x1="200" y1="259" x2="318" y2="245" stroke="#1f4e8c" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="500" y1="215" x2="618" y2="140" stroke="#1f4e8c" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="548" y="168" font-size="9" text-anchor="middle">3 transactions</text>
+  <text x="548" y="180" font-size="9" text-anchor="middle">séparées</text>
+  <path d="M200 160 L 250 160 L 250 22 L 600 22 L 640 70" fill="none" stroke="#b42318" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#r)"/>
+  <text x="420" y="14" font-size="10" text-anchor="middle" fill="#b42318" font-weight="700">① vue SQL directe depuis le navigateur (front.mjs fastList, non déclarée)</text>
+  <line x1="410" y1="272" x2="410" y2="318" stroke="#b42318" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#r)"/>
+  <text x="470" y="300" font-size="9.5" fill="#b42318" font-weight="700">③ secrets journalisés</text>
+  <text x="112" y="230" font-size="9.5" text-anchor="middle" fill="#b42318" font-weight="700">② tenant fourni par le client</text>
+  <line x1="612" y1="273" x2="502" y2="250" stroke="#8a93a6" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="560" y="276" font-size="9" fill="#5b6475" text-anchor="middle">jeton validé</text>
+  <text x="560" y="288" font-size="9" fill="#5b6475" text-anchor="middle">(claims ignorés ?)</text>
+</svg>
+<figcaption>Figure 1 — Existant reconstitué. Rouge : flux ou comportements observés mais absents de la cartographie officielle
+(① T10 config-demo.json + T09 front.mjs ; ② P05, T08 isolement.http, T09 back.mjs ; ③ T09 back.mjs, P09). Le « ? » marque
+l'hypothèse de l'audit A-01 : le jeton est accepté, mais ses claims ne servent pas à autoriser.</figcaption>
+</figure>
+
+<table>
+<tr><th>#</th><th>Flux observé</th><th>Acteur</th><th>Protocole</th><th>Frontière de confiance</th><th>Défaut</th></tr>
+<tr><td>E1</td><td>Portail → Adaptateur v1 → API</td><td>Demandeur client</td><td>HTTPS, JSON v1</td><td>Internet → serveurs</td><td>Tenant non vérifié côté API (A-01)</td></tr>
+<tr><td>E2</td><td>Console Ops → API <code>/api</code></td><td>Planificateur</td><td>HTTPS, Bearer + <code>X-Tenant</code></td><td>Navigateur → serveurs</td><td>Tenant choisi par le navigateur ; GET d'affectation (A-01, A-03)</td></tr>
+<tr><td>E3</td><td>Console Ops → vue PostgreSQL</td><td>Planificateur (navigateur)</td><td>Connexion SQL, identifiants dans la configuration publique</td><td>Navigateur → <b>données</b>, sans API</td><td>Contournement total de l'API (A-01)</td></tr>
+<tr><td>E4</td><td>Terrain → API <code>/api</code></td><td>Technicien</td><td>HTTPS</td><td>Mobile → serveurs</td><td>Transitions calculées par le client (A-02)</td></tr>
+<tr><td>E5</td><td>Export BI → Adaptateur v1</td><td>Compte reporter</td><td>HTTPS, lectures nocturnes</td><td>Poste BI → serveurs</td><td>Types et dates instables (A-06)</td></tr>
+<tr><td>E6</td><td>API → PostgreSQL</td><td>Service API</td><td>SQL, 3 transactions par affectation</td><td>Interne</td><td>États partiels, historique troué ou en double (A-03, A-10)</td></tr>
+<tr><td>E7</td><td>API → journaux</td><td>Service API</td><td>Journal applicatif</td><td>Interne → outils support</td><td>Jeton et titre copiés (A-09)</td></tr>
+</table>
+
+<h2 class="pb">2. Architecture cible</h2>
+<p>Le monolithe et PostgreSQL sont conservés (P05, P09). La séparation en microservices n'apporterait rien aux
+défauts constatés. La cible place <b>une seule frontière de confiance</b> à l'entrée de l'API v2 : tout ce qui vient
+d'un client est une demande à vérifier ; tout ce qui décide (identité, droits, règles, transitions, révision,
+historique) s'exécute derrière cette frontière.</p>
+<figure>
+<svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1f4e8c"/></marker>
+    <marker id="g" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6475"/></marker>
+  </defs>
+  <rect x="8" y="30" width="190" height="390" fill="#fbf3f2" stroke="#b42318" stroke-dasharray="6 4"/>
+  <text x="18" y="50" font-size="12" font-weight="700" fill="#b42318">Zone non fiable</text>
+  <text x="18" y="64" font-size="9.5" fill="#5b6475">prévalidation ergonomique seulement</text>
+  <rect x="240" y="30" width="330" height="390" fill="#eef4fb" stroke="#1f4e8c" stroke-width="2"/>
+  <text x="250" y="50" font-size="12" font-weight="700" fill="#1f4e8c">Frontière de confiance — service API</text>
+  <rect x="600" y="30" width="152" height="390" fill="#f3f5f9" stroke="#8a93a6" stroke-dasharray="6 4"/>
+  <text x="610" y="50" font-size="12" font-weight="700">Réseau privé</text>
+
+  <g font-size="11" text-anchor="middle">
+    <rect x="22" y="80" width="162" height="40" rx="5" fill="#fff" stroke="#1d2433"/><text x="103" y="104" font-weight="600">Console Ops (v2)</text>
+    <rect x="22" y="140" width="162" height="40" rx="5" fill="#fff" stroke="#1d2433"/><text x="103" y="164" font-weight="600">Terrain (v2)</text>
+    <rect x="22" y="230" width="162" height="40" rx="5" fill="#fff" stroke="#1d2433"/><text x="103" y="254" font-weight="600">Portail 1.8 (v1)</text>
+    <rect x="22" y="290" width="162" height="40" rx="5" fill="#fff" stroke="#1d2433"/><text x="103" y="314" font-weight="600">Export BI 0.6 (v1)</text>
+    <rect x="22" y="365" width="162" height="40" rx="5" fill="#fff" stroke="#1d2433"/><text x="103" y="383" font-weight="600">Fournisseur d'identité</text><text x="103" y="397" font-size="9" fill="#5b6475">émet le jeton signé</text>
+
+    <rect x="255" y="250" width="140" height="56" rx="5" fill="#fff" stroke="#1d2433"/><text x="325" y="272" font-weight="600">Adaptateur v1</text><text x="325" y="287" font-size="9" fill="#5b6475">conversion de format</text><text x="325" y="299" font-size="9" fill="#5b6475">uniquement (formats gelés)</text>
+    <rect x="410" y="70" width="150" height="40" rx="5" fill="#fff" stroke="#1f4e8c"/><text x="485" y="88" font-weight="600">Vérification jeton</text><text x="485" y="102" font-size="9" fill="#5b6475">signature, expiration, claims</text>
+    <rect x="410" y="130" width="150" height="50" rx="5" fill="#fff" stroke="#1f4e8c"/><text x="485" y="150" font-weight="600">Contrôleurs /v2</text><text x="485" y="164" font-size="9" fill="#5b6475">HTTP, schémas, ETag,</text><text x="485" y="175" font-size="9" fill="#5b6475">problem+json, corrélation</text>
+    <rect x="410" y="200" width="150" height="62" rx="5" fill="#fff" stroke="#1f4e8c"/><text x="485" y="220" font-weight="600">Service métier</text><text x="485" y="234" font-size="9" fill="#5b6475">visibilité, droits R06,</text><text x="485" y="246" font-size="9" fill="#5b6475">règles R02–R05, R11,</text><text x="485" y="258" font-size="9" fill="#5b6475">transitions, idempotence</text>
+    <rect x="410" y="282" width="150" height="62" rx="5" fill="#fff" stroke="#1f4e8c"/><text x="485" y="302" font-weight="600">Accès aux données</text><text x="485" y="316" font-size="9" fill="#5b6475">prédicat tenant_id imposé,</text><text x="485" y="328" font-size="9" fill="#5b6475">transaction : mutation +</text><text x="485" y="340" font-size="9" fill="#5b6475">révision + événement</text>
+    <rect x="410" y="362" width="150" height="40" rx="5" fill="#fff" stroke="#1d2433"/><text x="485" y="380" font-weight="600">Journal technique</text><text x="485" y="394" font-size="9" fill="#5b6475">corrélation, opération, statut</text>
+
+    <rect x="615" y="240" width="122" height="100" rx="6" fill="#fff" stroke="#1d2433"/><text x="676" y="262" font-weight="600">PostgreSQL</text><text x="676" y="280" font-size="9" fill="#5b6475">FK (tenant_id, site_id)</text><text x="676" y="293" font-size="9" fill="#5b6475">FK (tenant_id, tech_id)</text><text x="676" y="306" font-size="9" fill="#5b6475">UNIQUE (intervention,</text><text x="676" y="318" font-size="9" fill="#5b6475">revision) sur events</text><text x="676" y="331" font-size="9" fill="#5b6475">aucun compte client</text>
+    <rect x="615" y="80" width="122" height="46" rx="6" fill="#fff" stroke="#1d2433"/><text x="676" y="100" font-weight="600">Clés publiques IdP</text><text x="676" y="115" font-size="9" fill="#5b6475">(JWKS, en cache)</text>
+  </g>
+  <g stroke="#1f4e8c" stroke-width="1.6" fill="none">
+    <line x1="184" y1="100" x2="408" y2="86" marker-end="url(#b)"/>
+    <line x1="184" y1="160" x2="408" y2="100" marker-end="url(#b)"/>
+    <line x1="184" y1="250" x2="253" y2="270" marker-end="url(#b)"/>
+    <line x1="184" y1="310" x2="253" y2="290" marker-end="url(#b)"/>
+    <path d="M325 250 C 325 120 390 106 408 106" marker-end="url(#b)"/>
+    <line x1="485" y1="110" x2="485" y2="128" marker-end="url(#b)"/>
+    <line x1="485" y1="180" x2="485" y2="198" marker-end="url(#b)"/>
+    <line x1="485" y1="262" x2="485" y2="280" marker-end="url(#b)"/>
+    <line x1="560" y1="313" x2="613" y2="300" marker-end="url(#b)"/>
+    <line x1="560" y1="90" x2="613" y2="100" stroke="#5b6475" stroke-dasharray="3 3" marker-end="url(#g)"/>
+    <path d="M560 160 C 585 160 585 382 562 382" stroke="#5b6475" stroke-dasharray="3 3" marker-end="url(#g)"/>
+  </g>
+  <g stroke="#5b6475" stroke-width="1.2" stroke-dasharray="3 3" fill="none">
+    <line x1="103" y1="365" x2="103" y2="332" marker-end="url(#g)"/>
+  </g>
+  <text x="300" y="80" font-size="9" fill="#1f4e8c" text-anchor="middle">HTTPS + Bearer</text>
+  <text x="352" y="160" font-size="9" fill="#1f4e8c" text-anchor="middle">jeton relayé</text>
+  <text x="586" y="296" font-size="9" fill="#1f4e8c" text-anchor="middle">SQL</text>
+  <text x="140" y="352" font-size="9" fill="#5b6475">jeton (OIDC)</text>
+</svg>
+<figcaption>Figure 2 — Cible. Bleu : flux de requêtes ; gris pointillé : flux de confiance (jeton délivré au client, clés
+publiques consultées par l'API, journalisation). Portail et BI conservent la v1 par l'adaptateur, qui transmet le jeton de
+l'utilisateur à la v2 et ne décide d'aucun droit (P05, note du 20/10). La vue SQL et <code>X-Tenant</code> disparaissent.</figcaption>
+</figure>
+
+<table>
+<tr><th>#</th><th>Flux cible</th><th>Acteur</th><th>Protocole</th><th>Frontière franchie</th><th>Contrôle à la frontière</th></tr>
+<tr><td>C1</td><td>Client → IdP</td><td>Utilisateur</td><td>OIDC (existant)</td><td>Client → IdP</td><td>Authentification hors périmètre ; jeton signé avec <code>tenant_id</code>, <code>role</code>, <code>technician_id</code> (H7)</td></tr>
+<tr><td>C2</td><td>Ops, Terrain → API <code>/v2</code></td><td>Planificateur, technicien, demandeur</td><td>HTTPS, JSON, <code>Bearer</code>, <code>If-Match</code></td><td>Non fiable → confiance</td><td>Signature, expiration, claims ; schémas ; droits et règles ; 401/403/404/409/412/422</td></tr>
+<tr><td>C3</td><td>Portail, BI → Adaptateur v1 → <code>/v2</code></td><td>Demandeur, reporter</td><td>HTTPS, JSON v1 puis v2</td><td>Non fiable → confiance</td><td>Mêmes contrôles qu'en C2 : l'adaptateur relaie le jeton, sans privilège propre</td></tr>
+<tr><td>C4</td><td>API → PostgreSQL</td><td>Compte de service API</td><td>SQL, une transaction par mutation</td><td>Confiance → données (réseau privé)</td><td>Prédicat <code>tenant_id</code>, UPDATE conditionnel sur la révision, contraintes</td></tr>
+<tr><td>C5</td><td>API → journal technique</td><td>Service API</td><td>Journal structuré</td><td>Interne</td><td>Liste blanche de champs : <code>correlationId</code>, opération, statut, durée</td></tr>
+</table>
+
+<h2 class="pb">3. Séquence HTTP — planification concurrente (U2, INC-08)</h2>
+<p>Deux planificateurs ont lu I100 en révision 2. Les lignes SQL décrivent l'implémentation attendue ; les échanges
+HTTP sont exactement ceux rejoués dans le scénario S11 (<code>Tests_et_Validations/SCENARIOS.md</code>).</p>
+<figure>
+<svg viewBox="0 0 760 560" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="s" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1d2433"/></marker>
+  <marker id="sr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b42318"/></marker>
+  <marker id="sg" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1a7f37"/></marker></defs>
+  <g font-size="11" text-anchor="middle" font-weight="600">
+    <rect x="20" y="10" width="130" height="34" rx="4" fill="#eef4fb" stroke="#1f4e8c"/><text x="85" y="32">Ops — Nora</text>
+    <rect x="200" y="10" width="130" height="34" rx="4" fill="#eef4fb" stroke="#1f4e8c"/><text x="265" y="32">Ops — collègue</text>
+    <rect x="400" y="10" width="130" height="34" rx="4" fill="#eef4fb" stroke="#1f4e8c"/><text x="465" y="32">API v2</text>
+    <rect x="600" y="10" width="130" height="34" rx="4" fill="#eef4fb" stroke="#1f4e8c"/><text x="665" y="32">PostgreSQL</text>
+  </g>
+  <g stroke="#8a93a6" stroke-dasharray="4 4"><line x1="85" y1="44" x2="85" y2="550"/><line x1="265" y1="44" x2="265" y2="550"/><line x1="465" y1="44" x2="465" y2="550"/><line x1="665" y1="44" x2="665" y2="550"/></g>
+  <g font-size="9.5">
+    <line x1="85" y1="70" x2="461" y2="70" stroke="#1d2433" marker-end="url(#s)"/><text x="273" y="65" text-anchor="middle">1. GET /v2/interventions/I100</text>
+    <line x1="461" y1="88" x2="89" y2="88" stroke="#1d2433" stroke-dasharray="5 3" marker-end="url(#s)"/><text x="273" y="100" text-anchor="middle">200 · ETag "rev-2" · priority NORMAL</text>
+    <line x1="265" y1="118" x2="461" y2="118" stroke="#1d2433" marker-end="url(#s)"/><text x="363" y="113" text-anchor="middle">2. GET /v2/interventions/I100</text>
+    <line x1="461" y1="134" x2="269" y2="134" stroke="#1d2433" stroke-dasharray="5 3" marker-end="url(#s)"/><text x="363" y="146" text-anchor="middle">200 · ETag "rev-2"</text>
+
+    <line x1="85" y1="172" x2="461" y2="172" stroke="#1d2433" marker-end="url(#s)"/><text x="273" y="167" text-anchor="middle">3. PATCH …/I100 · If-Match "rev-2" · {"priority":"HIGH"}</text>
+    <line x1="465" y1="190" x2="661" y2="190" stroke="#1d2433" marker-end="url(#s)"/><text x="565" y="185" text-anchor="middle">BEGIN ; UPDATE … WHERE revision = 2</text>
+    <line x1="661" y1="206" x2="469" y2="206" stroke="#1d2433" stroke-dasharray="5 3" marker-end="url(#s)"/><text x="565" y="218" text-anchor="middle">1 ligne → INSERT event r3 ; COMMIT</text>
+    <line x1="461" y1="236" x2="89" y2="236" stroke="#1a7f37" stroke-width="1.5" marker-end="url(#sg)"/><text x="273" y="231" text-anchor="middle" fill="#1a7f37" font-weight="700">200 · ETag "rev-3" · priority HIGH</text>
+
+    <line x1="265" y1="270" x2="461" y2="270" stroke="#1d2433" marker-end="url(#s)"/><text x="363" y="258" text-anchor="middle">4. PUT …/I100/assignment</text><text x="363" y="282" text-anchor="middle">If-Match "rev-2" · {"technicianId":"T01"}</text>
+    <line x1="465" y1="300" x2="661" y2="300" stroke="#1d2433" marker-end="url(#s)"/><text x="565" y="295" text-anchor="middle">BEGIN ; T01 actif du tenant ? oui</text>
+    <line x1="465" y1="322" x2="661" y2="322" stroke="#1d2433" marker-end="url(#s)"/><text x="565" y="317" text-anchor="middle">UPDATE … WHERE revision = 2</text>
+    <line x1="661" y1="340" x2="469" y2="340" stroke="#1d2433" stroke-dasharray="5 3" marker-end="url(#s)"/><text x="565" y="352" text-anchor="middle">0 ligne → ROLLBACK (aucun événement)</text>
+    <line x1="461" y1="372" x2="269" y2="372" stroke="#b42318" stroke-width="1.5" marker-end="url(#sr)"/><text x="363" y="367" text-anchor="middle" fill="#b42318" font-weight="700">412 · currentRevision 3</text>
+    <text x="175" y="392" text-anchor="middle" fill="#5b6475">écran : saisie conservée, bandeau</text><text x="175" y="404" text-anchor="middle" fill="#5b6475">« modifiée entre-temps »</text>
+
+    <line x1="265" y1="428" x2="461" y2="428" stroke="#1d2433" marker-end="url(#s)"/><text x="363" y="423" text-anchor="middle">5. GET /v2/interventions/I100 (relecture)</text>
+    <line x1="461" y1="446" x2="269" y2="446" stroke="#1d2433" stroke-dasharray="5 3" marker-end="url(#s)"/><text x="363" y="458" text-anchor="middle">200 · ETag "rev-3" · priority HIGH visible</text>
+    <line x1="265" y1="486" x2="461" y2="486" stroke="#1d2433" marker-end="url(#s)"/><text x="363" y="481" text-anchor="middle">6. PUT …/assignment · If-Match "rev-3"</text>
+    <line x1="465" y1="504" x2="661" y2="504" stroke="#1d2433" marker-end="url(#s)"/><text x="565" y="487" text-anchor="middle">UPDATE … WHERE revision = 3</text><text x="565" y="499" text-anchor="middle">INSERT event r4 ; COMMIT</text>
+    <line x1="461" y1="532" x2="269" y2="532" stroke="#1a7f37" stroke-width="1.5" marker-end="url(#sg)"/><text x="363" y="527" text-anchor="middle" fill="#1a7f37" font-weight="700">200 · ASSIGNED · T01 · HIGH · ETag "rev-4"</text>
+  </g>
+</svg>
+<figcaption>Figure 3 — Séquence. Acteurs : deux planificateurs C01 (Console Ops, navigateur, zone non fiable), API v2 (zone de
+confiance), PostgreSQL (réseau privé). Protocole : HTTPS/JSON entre clients et API, SQL transactionnel entre API et base.
+Aucune décision n'est perdue, et la tentative rejetée ne laisse ni mutation ni événement.</figcaption>
+</figure>
+<p class="small">Requête 4 détaillée :</p>
+<pre>PUT /v2/interventions/I100/assignment HTTP/1.1
+Host: api.atlas.invalid
+Authorization: Bearer DEMO-U02-C01
+Content-Type: application/json
+If-Match: "rev-2"
+
+{"technicianId": "T01"}
+
+HTTP/1.1 412
+Content-Type: application/problem+json
+ETag: "rev-3"
+X-Correlation-Id: corr-0004
+
+{"type": "https://api.atlas.invalid/problems/precondition-failed", "title": "Intervention modifiée entre-temps",
+ "status": 412, "code": "PRECONDITION_FAILED", "detail": "If-Match \"rev-2\" ne correspond plus à la révision 3.",
+ "correlationId": "corr-0004", "currentRevision": 3}</pre>
+
+<h2 class="pb">4. Matrice des responsabilités</h2>
+<p>Lecture : <b>qui décide</b> (en gras) et qui contribue. « Identité » désigne le fournisseur d'identité existant.</p>
+<table>
+<tr><th>Préoccupation</th><th>Front-End (Ops, Terrain, Portail)</th><th>Back-End (API v2)</th><th>Stockage (PostgreSQL)</th><th>Identité (IdP)</th></tr>
+<tr><td>Affichage</td><td><b>Décide</b> : états chargement, vide, succès, erreurs par <code>code</code> ; fuseau horaire local ; libellés (« Annulée » ≠ « Terminée »)</td><td>Fournit des formats stables, des instants UTC, des erreurs structurées</td><td>—</td><td>—</td></tr>
+<tr><td>Validation</td><td>Prévalidation ergonomique (titre, champs requis) ; conserve la saisie sur 422</td><td><b>Décide</b> : schémas, titre R02 après suppression des espaces, enums, champs interdits, références au tenant</td><td>Contraintes NOT NULL, CHECK sur enums, FK composites (dernier rempart)</td><td>—</td></tr>
+<tr><td>Droits</td><td>Masque les actions non permises (confort, pas sécurité)</td><td><b>Décide</b> : matrice R06, visibilité technicien, 403 contre 404</td><td>Aucun compte client ; RLS facultative en défense</td><td><b>Atteste</b> utilisateur, tenant, rôle, technicien</td></tr>
+<tr><td>Isolement</td><td>N'envoie plus <code>X-Tenant</code> ; aucune liste « cachée » d'autres tenants (U1)</td><td><b>Décide</b> : tenant du jeton, prédicat dans chaque requête, 404 indiscernable</td><td>FK <code>(tenant_id, site_id)</code>, <code>(tenant_id, technician_id)</code></td><td>Source du <code>tenant_id</code></td></tr>
+<tr><td>Transitions</td><td>Propose les boutons selon le statut reçu ; file d'intentions hors ligne (Terrain)</td><td><b>Décide</b> : table R04/R05, états terminaux, 409</td><td>CHECK sur les valeurs de statut</td><td>—</td></tr>
+<tr><td>Concurrence</td><td>Conserve l'ETag ; envoie <code>If-Match</code> ; gère 412 par relecture et confirmation</td><td><b>Décide</b> : 428/412, incrément de révision</td><td><b>Garantit</b> : UPDATE conditionnel atomique sur <code>revision</code></td><td>—</td></tr>
+<tr><td>Historique</td><td>Affiche la chronologie par révision</td><td><b>Décide</b> : un événement par mutation effective, minimisé (sans titre)</td><td><b>Garantit</b> : même transaction ; UNIQUE (intervention_id, revision) ; rétention 12 mois (N03)</td><td>Fournit l'acteur (<code>sub</code>, <code>role</code>)</td></tr>
+<tr><td>Journaux et support</td><td>Affiche le <code>correlationId</code> en cas d'erreur, jamais le jeton</td><td><b>Décide</b> : journal en liste blanche, en-tête <code>X-Correlation-Id</code></td><td>Journaux techniques 30 jours (N03)</td><td>—</td></tr>
+</table>
+
+<h2>5. Accès aux données</h2>
+<p>Le schéma de stockage (P05) est conservé ; le modèle publié en diffère (<code>createdBy</code>, instants formatés,
+<code>changes</code> d'événement). Transformations : la ligne <code>interventions</code> devient l'objet <code>Intervention</code>, la ligne
+<code>events</code> enrichie d'une colonne <code>changes</code> (JSON) devient l'objet <code>Event</code>. Les contraintes ajoutées (migration de schéma) :</p>
+<pre>ALTER TABLE sites        ADD CONSTRAINT sites_tenant_uk UNIQUE (tenant_id, id);
+ALTER TABLE technicians  ADD CONSTRAINT tech_tenant_uk  UNIQUE (tenant_id, id);
+ALTER TABLE interventions
+  ADD CONSTRAINT itv_site_fk FOREIGN KEY (tenant_id, site_id)       REFERENCES sites (tenant_id, id),
+  ADD CONSTRAINT itv_tech_fk FOREIGN KEY (tenant_id, technician_id) REFERENCES technicians (tenant_id, id),
+  ADD CONSTRAINT itv_status_ck   CHECK (status IN ('NEW','ASSIGNED','IN_PROGRESS','DONE','CANCELLED')),
+  ADD CONSTRAINT itv_priority_ck CHECK (priority IN ('LOW','NORMAL','HIGH'));
+ALTER TABLE events ADD CONSTRAINT events_rev_uk UNIQUE (intervention_id, revision);
+CREATE INDEX itv_list_idx ON interventions (tenant_id, status, site_id, created_at DESC, id DESC);
+CREATE INDEX itv_tenant_idx ON interventions (tenant_id, created_at DESC, id DESC);</pre>
+<p class="small muted">Avec <code>MATCH SIMPLE</code> (défaut PostgreSQL), la FK technicien n'est pas vérifiée tant que
+<code>technician_id</code> est NULL, ce qui correspond à « aucun technicien ». L'activité du technicien reste une règle
+applicative vérifiée dans la transaction : une contrainte ne peut pas l'exprimer sans bloquer la désactivation d'un
+technicien encore affecté.</p>
+<pre>-- Liste, page suivante (tri -createdAt) : keyset, tenant imposé par le jeton
+SELECT … FROM interventions
+ WHERE tenant_id = :tenant AND (:status IS NULL OR status = :status) AND (:site IS NULL OR site_id = :site)
+   AND (created_at, id) &lt; (:cursor_created_at, :cursor_id)
+ ORDER BY created_at DESC, id DESC
+ LIMIT :limit + 1;                     -- la ligne en plus indique hasNext
+
+-- Affectation : une transaction
+BEGIN;
+SELECT active FROM technicians WHERE tenant_id = :tenant AND id = :tech;      -- 422 si absent ou inactif
+UPDATE interventions SET technician_id = :tech, status = 'ASSIGNED', revision = revision + 1, updated_at = now()
+ WHERE id = :id AND tenant_id = :tenant AND revision = :if_match AND status IN ('NEW','ASSIGNED')
+RETURNING revision;                                                          -- 0 ligne : relire pour choisir 404/412/409
+INSERT INTO events (intervention_id, actor_id, kind, at, revision, changes) VALUES (…);
+COMMIT;</pre>
+
+<h2 class="pb">6. Continuité v1 et migration des consommateurs</h2>
+<p>Principe (ADR-3) : un cœur unique <code>/v2</code> ; l'adaptateur v1 reste le seul point de conversion ; migration
+consommateur par consommateur. Les correctifs de sécurité ne sont jamais annulés par un retour arrière (P09).
+Les dates sont des propositions à confirmer par ATLAS (N01).</p>
+<table>
+<tr><th>Phase</th><th>Période proposée</th><th>Contenu</th><th>Critère d'entrée</th><th>Critère d'arrêt / retour</th></tr>
+<tr><td>0 — Sécurité v1</td><td>dès validation (fin novembre 2026)</td><td>Tenant du jeton sur toutes les routes <code>/api</code> ; détail filtré ; R02/R03 côté serveur ; affectation : contrôles tenant/actif, transaction unique, sans événement si inchangée ; révocation de la vue SQL ; retrait de <code>sqlView</code>, <code>tenantHeader</code>, <code>logAuthorization</code> ; purge des journaux</td><td>Annonce aux propriétaires des consommateurs (usage hors tenant coupé)</td><td>Retour du code applicatif possible, <b>jamais</b> celui de la révocation SQL, du filtre tenant ni de la purge</td></tr>
+<tr><td>1 — Publication v2</td><td>décembre 2026</td><td><code>/v2</code> en production ; Console Ops puis Terrain migrent (tenant pilote, puis tous)</td><td>18 scénarios verts contre le vrai serveur ; tests consommateur Ops/Terrain</td><td>5xx ou 412 au-dessus de la référence de +2 points pendant 24 h → consommateur remis sur <code>/api</code> sécurisée</td></tr>
+<tr><td>2 — Fermeture des écritures dangereuses</td><td>janvier 2027</td><td><code>GET /api/assign</code> et <code>PUT /api/intervention/{id}</code> → 410 avec lien vers la route v2</td><td>Trafic nul sur ces routes pendant 7 jours</td><td>Réouverture temporaire possible pour Ops uniquement, version sécurisée de phase 0</td></tr>
+<tr><td>3 — Adaptateur sur v2, puis retrait</td><td>janvier 2027 → 31/01/2027 (à confirmer)</td><td>Adaptateur rebranché sur <code>/v2</code> ; Portail et BI inchangés ; retrait quand le trafic v1 est nul</td><td>Golden files de l'adaptateur identiques avant/après (H1) ; test de contrat BI (enums)</td><td>Écart de golden file → adaptateur remis sur <code>/api</code> sécurisée</td></tr>
+</table>
+<table>
+<tr><th>Consommateur</th><th>Routes aujourd'hui</th><th>Cible</th><th>Changement visible</th><th>Preuve de non-régression</th></tr>
+<tr><td>Portail 1.8</td><td>v1 via adaptateur (liste, détail, création)</td><td>v1 via adaptateur jusqu'au retrait</td><td>Hors tenant → « not_found » ; R02 appliquée ; CANCELLED vu CLOSED + <code>statusDetail</code></td><td>Golden files, S12</td></tr>
+<tr><td>Export BI 0.6</td><td>v1 liste et historique, de nuit</td><td>Idem, puis migration v2 facultative</td><td>Dates ISO UTC, priorités en chaîne, nouveaux <code>kind</code> (H5)</td><td>Test de contrat BI, S12</td></tr>
+<tr><td>Console Ops 2.4</td><td><code>/api</code> direct + vue SQL</td><td><code>/v2</code></td><td>Enveloppe <code>{items, page}</code>, curseur, PATCH, <code>/assignment</code>, problem+json, If-Match</td><td>S01–S13</td></tr>
+<tr><td>Terrain 0.9</td><td><code>/api</code> direct, transitions locales</td><td><code>/v2</code></td><td><code>/transitions</code>, 412 pour les intentions anciennes</td><td>S14, S11</td></tr>
+</table>
+<p><b>Observation pendant la transition</b> (P09) : taux d'erreurs par route et par code, latence p95 de la liste (N04),
+taux de 412, trafic résiduel par route v1. Le coût d'une correction de sécurité, qui rend indisponible un ancien
+usage non autorisé (lecture hors tenant, affectation par lien), est présenté à la direction comme assumé.</p>
+
+<footer class="doc">ATLAS — Architecture — Paul Mehr — environnement fictif. Diagrammes en SVG intégré, lisibles sans rendu Mermaid.</footer>
+</body>
+</html>

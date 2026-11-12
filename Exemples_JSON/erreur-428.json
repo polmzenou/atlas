@@ -1,0 +1,7 @@
+{
+  "type": "https://api.atlas.invalid/problems/precondition-required",
+  "title": "En-tête If-Match obligatoire",
+  "status": 428,
+  "code": "PRECONDITION_REQUIRED",
+  "correlationId": "corr-0007"
+}

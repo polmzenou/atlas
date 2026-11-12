@@ -1,0 +1,15 @@
+$ python verifier_detection.py
+# 2026-11-12 14:11:54 UTC | Python 3.13.2 | node v22.14.0 | code retour 0
+
+Référence (simulateur non modifié) : aucun échec
+✅ détecté  — INC-04 PATCH remet technicianId à null → scénarios en échec : S06
+✅ détecté  — INC-06 visibilité sans contrôle de tenant → scénarios en échec : S01, S02, S03, S04, S08, S09, S12, S14
+✅ détecté  — INC-08 révision If-Match ignorée → scénarios en échec : S11
+✅ détecté  — INC-07 technicien : existence seule → scénarios en échec : S13
+✅ détecté  — INC-03/10 événement à chaque répétition → scénarios en échec : S11, S13
+✅ détecté  — INC-05 liste sans ordre déterministe → scénarios en échec : S03, S04, S14
+✅ détecté  — R02 titre non validé côté serveur → scénarios en échec : S01, S05, S12
+✅ détecté  — R03 tenant pris dans X-Tenant à la création → scénarios en échec : S01
+✅ détecté  — N03 jeton et texte libre journalisés → scénarios en échec : S18
+
+BILAN : 9/9 défauts historiques détectés par les scénarios.

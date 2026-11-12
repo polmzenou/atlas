@@ -1,0 +1,9 @@
+{
+  "items": [],
+  "page": {
+    "limit": 20,
+    "hasNext": false,
+    "nextCursor": null,
+    "totalItems": 0
+  }
+}

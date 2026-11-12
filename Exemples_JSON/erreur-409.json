@@ -1,0 +1,9 @@
+{
+  "type": "https://api.atlas.invalid/problems/invalid-transition",
+  "title": "Transition interdite",
+  "status": 409,
+  "code": "INVALID_TRANSITION",
+  "detail": "DONE est un état terminal.",
+  "correlationId": "corr-0005",
+  "currentStatus": "DONE"
+}

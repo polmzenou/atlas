@@ -1,0 +1,14 @@
+{
+  "type": "https://api.atlas.invalid/problems/validation-failed",
+  "title": "Données invalides",
+  "status": 422,
+  "code": "VALIDATION_FAILED",
+  "correlationId": "corr-0009",
+  "errors": [
+    {
+      "field": "technicianId",
+      "code": "TECHNICIAN_NOT_FOUND",
+      "message": "Technicien inconnu dans votre organisation."
+    }
+  ]
+}

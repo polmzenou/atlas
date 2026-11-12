@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "id": "I100",
+      "tenantId": "C01",
+      "siteId": "S01",
+      "title": "Porte bloquée accueil",
+      "priority": "NORMAL",
+      "status": "NEW",
+      "technicianId": null,
+      "createdAt": "2026-10-20T08:00:00Z",
+      "updatedAt": "2026-10-20T08:00:00Z",
+      "createdBy": "U02",
+      "revision": 2
+    }
+  ],
+  "page": {
+    "limit": 20,
+    "hasNext": false,
+    "nextCursor": null,
+    "totalItems": 1
+  }
+}

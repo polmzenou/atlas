@@ -1,0 +1,4793 @@
+[
+  {
+    "id": "S01",
+    "ok": true,
+    "effect": {
+      "label": "+1 intervention, +1 événement CREATED en révision 1",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Création sans priorité (X-Tenant falsifié ignoré)",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nX-Tenant: C02\n\n{\"siteId\": \"S01\", \"title\": \"  Climatisation salle réunion \"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I104",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Climatisation salle réunion",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/creation-201.json",
+            "ok": true
+          },
+          {
+            "label": "Location = /v2/interventions/I104",
+            "ok": true
+          },
+          {
+            "label": "ETag = \"rev-1\"",
+            "ok": true
+          },
+          {
+            "label": "titre normalisé (espaces retirés), priorité NORMAL, tenant C01 imposé",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Lecture du lien Location",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I104 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Climatisation salle réunion",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "même identifiant et même contenu que la réponse de création",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Présence dans la liste filtrée",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?status=NEW&siteId=S01 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I104",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Climatisation salle réunion",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-27T09:00:01Z",
+                "updatedAt": "2026-10-27T09:00:01Z",
+                "createdBy": "U01",
+                "revision": 1
+              },
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              }
+            ],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 2
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "I104 présent, I100 présent",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Zoé (C02) tente de lire I104 (T13)",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I104 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U20-C02",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/not-found",
+            "title": "Intervention introuvable",
+            "status": 404,
+            "code": "NOT_FOUND",
+            "correlationId": "corr-0004"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "code NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 404 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "I104 persistée dans C01",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S02",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Site du tenant sans résultat",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?siteId=S03 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "items": [],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 0
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/liste-200-vide.json",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Site d'un autre tenant : même réponse vide (aucune divulgation)",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?siteId=S01 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U20-C02",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "items": [],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 0
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "items vide, totalItems 0",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S03",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "status=NEW seul",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?status=NEW HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I102",
+                "tenantId": "C01",
+                "siteId": "S02",
+                "title": "Éclairage couloir étage",
+                "priority": "LOW",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 1
+              },
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              }
+            ],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 2
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "I102 puis I100 (tri createdAt desc, id desc)",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "siteId=S01 seul",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?siteId=S01 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I101",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Climatisation salle réunion",
+                "priority": "NORMAL",
+                "status": "ASSIGNED",
+                "technicianId": "T01",
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-21T09:00:00Z",
+                "createdBy": "U01",
+                "revision": 2
+              },
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              },
+              {
+                "id": "I103",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Serrure salle serveur",
+                "priority": "HIGH",
+                "status": "DONE",
+                "technicianId": "T01",
+                "createdAt": "2026-10-19T08:00:00Z",
+                "updatedAt": "2026-10-21T11:00:00Z",
+                "createdBy": "U01",
+                "revision": 3
+              }
+            ],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 3
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "I101, I100, I103",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "status=NEW ET siteId=S01",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?status=NEW&siteId=S01 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              }
+            ],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 1
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/liste-200-filtre.json",
+            "ok": true
+          },
+          {
+            "label": "intersection exacte : I100 seul",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Statut inconnu",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?status=OPEN HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-parameter",
+            "title": "Paramètre invalide",
+            "status": 400,
+            "code": "INVALID_PARAMETER",
+            "correlationId": "corr-0004",
+            "errors": [
+              {
+                "field": "status",
+                "code": "INVALID_VALUE",
+                "message": "Valeurs : NEW, ASSIGNED, IN_PROGRESS, DONE, CANCELLED"
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_PARAMETER",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ status=INVALID_VALUE",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Paramètre v1 sur la route v2",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?state=open HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-parameter",
+            "title": "Paramètre invalide",
+            "status": 400,
+            "code": "INVALID_PARAMETER",
+            "correlationId": "corr-0005",
+            "errors": [
+              {
+                "field": "state",
+                "code": "UNKNOWN_FIELD",
+                "message": "Paramètre inconnu."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_PARAMETER",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ state=UNKNOWN_FIELD",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S04",
+    "ok": true,
+    "effect": {
+      "label": "seule la création de l'étape 5 (I104)",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "limit=0",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?limit=0 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-parameter",
+            "title": "Paramètre invalide",
+            "status": 400,
+            "code": "INVALID_PARAMETER",
+            "correlationId": "corr-0001",
+            "detail": "limit doit être compris entre 1 et 100.",
+            "errors": [
+              {
+                "field": "limit",
+                "code": "OUT_OF_RANGE",
+                "message": "Valeur entre 1 et 100."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_PARAMETER",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ limit=OUT_OF_RANGE",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "limit=101 (taille déraisonnable)",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?limit=101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-parameter",
+            "title": "Paramètre invalide",
+            "status": 400,
+            "code": "INVALID_PARAMETER",
+            "correlationId": "corr-0002",
+            "detail": "limit doit être compris entre 1 et 100.",
+            "errors": [
+              {
+                "field": "limit",
+                "code": "OUT_OF_RANGE",
+                "message": "Valeur entre 1 et 100."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_PARAMETER",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ limit=OUT_OF_RANGE",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "limit=100 (borne haute admise)",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?limit=100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I102",
+                "tenantId": "C01",
+                "siteId": "S02",
+                "title": "Éclairage couloir étage",
+                "priority": "LOW",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 1
+              },
+              {
+                "id": "I101",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Climatisation salle réunion",
+                "priority": "NORMAL",
+                "status": "ASSIGNED",
+                "technicianId": "T01",
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-21T09:00:00Z",
+                "createdBy": "U01",
+                "revision": 2
+              },
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              },
+              {
+                "id": "I103",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Serrure salle serveur",
+                "priority": "HIGH",
+                "status": "DONE",
+                "technicianId": "T01",
+                "createdAt": "2026-10-19T08:00:00Z",
+                "updatedAt": "2026-10-21T11:00:00Z",
+                "createdBy": "U01",
+                "revision": 3
+              }
+            ],
+            "page": {
+              "limit": 100,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 4
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "4 éléments, pas de page suivante",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Page 1, limit=2",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?limit=2 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I102",
+                "tenantId": "C01",
+                "siteId": "S02",
+                "title": "Éclairage couloir étage",
+                "priority": "LOW",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 1
+              },
+              {
+                "id": "I101",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Climatisation salle réunion",
+                "priority": "NORMAL",
+                "status": "ASSIGNED",
+                "technicianId": "T01",
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-21T09:00:00Z",
+                "createdBy": "U01",
+                "revision": 2
+              }
+            ],
+            "page": {
+              "limit": 2,
+              "hasNext": true,
+              "nextCursor": "eyJrIjpbIjIwMjYtMTAtMjBUMDg6MDA6MDBaIiwiSTEwMSJdLCJmIjp7InN0YXR1cyI6bnVsbCwic2l0ZUlkIjpudWxsLCJzb3J0IjoiLWNyZWF0ZWRBdCJ9fQ",
+              "totalItems": 4
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "I102, I101 ; hasNext ; totalItems 4",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Insertion concurrente entre deux pages",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S02\", \"title\": \"Fuite lavabo étage 2\"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I104",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S02",
+            "title": "Fuite lavabo étage 2",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Page 2 avec le curseur reçu",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?limit=2&cursor=eyJrIjpbIjIwMjYtMTAtMjBUMDg6MDA6MDBaIiwiSTEwMSJdLCJmIjp7InN0YXR1cyI6bnVsbCwic2l0ZUlkIjpudWxsLCJzb3J0IjoiLWNyZWF0ZWRBdCJ9fQ HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0006"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              },
+              {
+                "id": "I103",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Serrure salle serveur",
+                "priority": "HIGH",
+                "status": "DONE",
+                "technicianId": "T01",
+                "createdAt": "2026-10-19T08:00:00Z",
+                "updatedAt": "2026-10-21T11:00:00Z",
+                "createdBy": "U01",
+                "revision": 3
+              }
+            ],
+            "page": {
+              "limit": 2,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 5
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "I100, I103 : ni doublon ni saut ; la nouvelle ligne (plus récente) n'apparaît pas",
+            "ok": true
+          },
+          {
+            "label": "totalItems recalculé = 5 (décompte non figé)",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Curseur réutilisé avec un autre filtre",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions?limit=2&status=NEW&cursor=eyJrIjpbIjIwMjYtMTAtMjBUMDg6MDA6MDBaIiwiSTEwMSJdLCJmIjp7InN0YXR1cyI6bnVsbCwic2l0ZUlkIjpudWxsLCJzb3J0IjoiLWNyZWF0ZWRBdCJ9fQ HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0007"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-cursor",
+            "title": "Curseur invalide",
+            "status": 400,
+            "code": "INVALID_CURSOR",
+            "correlationId": "corr-0007",
+            "detail": "Curseur illisible ou utilisé avec d'autres filtres ; repartir de la première page."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_CURSOR",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S05",
+    "ok": true,
+    "effect": {
+      "label": "seules les 2 créations valides (I104, I105) ; aucune trace des rejets",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Titre composé d'espaces",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": \"     \"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0001",
+            "errors": [
+              {
+                "field": "title",
+                "code": "INVALID_LENGTH",
+                "message": "Le titre doit contenir 5 à 120 caractères hors espaces aux extrémités."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ title=INVALID_LENGTH",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Titre de 121 caractères",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": \"Remplacement complet de la centrale de traitement d'air du bâtiment B, contrôle des filtres et des gaines, essais de bonX\"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0002",
+            "errors": [
+              {
+                "field": "title",
+                "code": "INVALID_LENGTH",
+                "message": "Le titre doit contenir 5 à 120 caractères hors espaces aux extrémités."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ title=INVALID_LENGTH",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Plusieurs erreurs rendues ensemble",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S20\", \"title\": \"abc\", \"priority\": \"urgent\", \"tenantId\": \"C02\"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0003",
+            "errors": [
+              {
+                "field": "tenantId",
+                "code": "UNKNOWN_FIELD",
+                "message": "Champ non accepté : valeur déterminée par le serveur ou inconnue."
+              },
+              {
+                "field": "title",
+                "code": "INVALID_LENGTH",
+                "message": "Le titre doit contenir 5 à 120 caractères hors espaces aux extrémités."
+              },
+              {
+                "field": "siteId",
+                "code": "SITE_NOT_FOUND",
+                "message": "Site inconnu dans votre organisation."
+              },
+              {
+                "field": "priority",
+                "code": "INVALID_VALUE",
+                "message": "Valeurs : LOW, NORMAL, HIGH."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "4 champs signalés : tenantId, title, siteId, priority",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "JSON mal formé",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": ",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/malformed-request",
+            "title": "Corps JSON illisible",
+            "status": 400,
+            "code": "MALFORMED_REQUEST",
+            "correlationId": "corr-0004"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code MALFORMED_REQUEST",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Mauvais type de contenu",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/x-www-form-urlencoded\n\ntitle=Porte",
+        "response": {
+          "status": 415,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/unsupported-media-type",
+            "title": "Type de contenu non supporté",
+            "status": 415,
+            "code": "UNSUPPORTED_MEDIA_TYPE",
+            "correlationId": "corr-0005",
+            "detail": "Content-Type attendu : application/json."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 415",
+            "ok": true
+          },
+          {
+            "label": "code UNSUPPORTED_MEDIA_TYPE",
+            "ok": true
+          },
+          {
+            "label": "statut 415 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Borne basse acceptée : 5 caractères utiles",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": \" Porte \"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I104",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0006"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "titre « Porte »",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Borne haute acceptée : 120 caractères",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": \"Remplacement complet de la centrale de traitement d'air du bâtiment B, contrôle des filtres et des gaines, essais de bon\"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I105",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0007"
+          },
+          "body": {
+            "id": "I105",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Remplacement complet de la centrale de traitement d'air du bâtiment B, contrôle des filtres et des gaines, essais de bon",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:02Z",
+            "updatedAt": "2026-10-27T09:00:02Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "titre de 120 caractères",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S06",
+    "ok": true,
+    "effect": {
+      "label": "une seule révision et un seul événement UPDATED",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "PATCH du seul titre (technicianId absent)",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"title\": \"Climatisation salle réunion étage\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "id": "I101",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Climatisation salle réunion étage",
+            "priority": "NORMAL",
+            "status": "ASSIGNED",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "technicianId T01 et statut ASSIGNED conservés ; révision 3",
+            "ok": true
+          },
+          {
+            "label": "événement UPDATED sans recopie du titre",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "priority: null",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"priority\": null}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0002",
+            "errors": [
+              {
+                "field": "priority",
+                "code": "NULL_NOT_ALLOWED",
+                "message": "Priorité obligatoire si fournie."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ priority=NULL_NOT_ALLOWED",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "technicianId: null (retrait déguisé)",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"technicianId\": null}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0003",
+            "errors": [
+              {
+                "field": "technicianId",
+                "code": "FIELD_NOT_MODIFIABLE",
+                "message": "Non modifiable ici : utiliser /assignment."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ technicianId=FIELD_NOT_MODIFIABLE",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Même titre renvoyé : aucun changement effectif",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"title\": \"Climatisation salle réunion étage\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "id": "I101",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Climatisation salle réunion étage",
+            "priority": "NORMAL",
+            "status": "ASSIGNED",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "révision toujours 3",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S07",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Sans Authorization",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions HTTP/1.1\nHost: api.atlas.invalid",
+        "response": {
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "WWW-Authenticate": "Bearer realm=\"atlas\"",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/unauthenticated",
+            "title": "Authentification requise",
+            "status": 401,
+            "code": "UNAUTHENTICATED",
+            "correlationId": "corr-0001"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 401",
+            "ok": true
+          },
+          {
+            "label": "code UNAUTHENTICATED",
+            "ok": true
+          },
+          {
+            "label": "statut 401 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête WWW-Authenticate déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "WWW-Authenticate présent",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Jeton non reconnu",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer FAUX-JETON",
+        "response": {
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "WWW-Authenticate": "Bearer realm=\"atlas\"",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/unauthenticated",
+            "title": "Authentification requise",
+            "status": 401,
+            "code": "UNAUTHENTICATED",
+            "correlationId": "corr-0002"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 401",
+            "ok": true
+          },
+          {
+            "label": "code UNAUTHENTICATED",
+            "ok": true
+          },
+          {
+            "label": "statut 401 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête WWW-Authenticate déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "X-Tenant seul ne vaut pas identité",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nContent-Type: application/json\nX-Tenant: C01\n\n{\"siteId\": \"S01\", \"title\": \"Porte bloquée\"}",
+        "response": {
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "WWW-Authenticate": "Bearer realm=\"atlas\"",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/unauthenticated",
+            "title": "Authentification requise",
+            "status": 401,
+            "code": "UNAUTHENTICATED",
+            "correlationId": "corr-0003"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 401",
+            "ok": true
+          },
+          {
+            "label": "code UNAUTHENTICATED",
+            "ok": true
+          },
+          {
+            "label": "statut 401 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête WWW-Authenticate déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S08",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Lina lit I200 en forçant X-Tenant: C02",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I200 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nX-Tenant: C02",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/not-found",
+            "title": "Intervention introuvable",
+            "status": 404,
+            "code": "NOT_FOUND",
+            "correlationId": "corr-0001"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "code NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 404 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "aucun champ de I200 dans la réponse",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Lina lit I999 inexistant",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I999 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/not-found",
+            "title": "Intervention introuvable",
+            "status": 404,
+            "code": "NOT_FOUND",
+            "correlationId": "corr-0002"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "code NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 404 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "réponse identique à l'étape précédente (hors correlationId)",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Lina tente un PATCH sur I200",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I200 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIf-Match: \"rev-1\"\n\n{\"title\": \"Prise de contrôle\"}",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/not-found",
+            "title": "Intervention introuvable",
+            "status": 404,
+            "code": "NOT_FOUND",
+            "correlationId": "corr-0003"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "code NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 404 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Lina lit l'historique de I200",
+        "operation": "listInterventionEvents",
+        "request": "GET /v2/interventions/I200/events HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/not-found",
+            "title": "Intervention introuvable",
+            "status": 404,
+            "code": "NOT_FOUND",
+            "correlationId": "corr-0004"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "code NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 404 documenté pour listInterventionEvents",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Samir lit I100 (même tenant, non affectée)",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/not-found",
+            "title": "Intervention introuvable",
+            "status": 404,
+            "code": "NOT_FOUND",
+            "correlationId": "corr-0005"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "code NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 404 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S09",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Reporter lit la liste (autorisé)",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I102",
+                "tenantId": "C01",
+                "siteId": "S02",
+                "title": "Éclairage couloir étage",
+                "priority": "LOW",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 1
+              },
+              {
+                "id": "I101",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Climatisation salle réunion",
+                "priority": "NORMAL",
+                "status": "ASSIGNED",
+                "technicianId": "T01",
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-21T09:00:00Z",
+                "createdBy": "U01",
+                "revision": 2
+              },
+              {
+                "id": "I100",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Porte bloquée accueil",
+                "priority": "NORMAL",
+                "status": "NEW",
+                "technicianId": null,
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-20T08:00:00Z",
+                "createdBy": "U02",
+                "revision": 2
+              },
+              {
+                "id": "I103",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Serrure salle serveur",
+                "priority": "HIGH",
+                "status": "DONE",
+                "technicianId": "T01",
+                "createdAt": "2026-10-19T08:00:00Z",
+                "updatedAt": "2026-10-21T11:00:00Z",
+                "createdBy": "U01",
+                "revision": 3
+              }
+            ],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 4
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "4 interventions C01",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Reporter modifie I100",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"priority\": \"HIGH\"}",
+        "response": {
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/forbidden",
+            "title": "Action non autorisée",
+            "status": 403,
+            "code": "FORBIDDEN",
+            "correlationId": "corr-0002",
+            "detail": "Le rôle reporter ne peut pas modifier une intervention."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 403",
+            "ok": true
+          },
+          {
+            "label": "code FORBIDDEN",
+            "ok": true
+          },
+          {
+            "label": "statut 403 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Reporter crée",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": \"Porte bloquée\"}",
+        "response": {
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/forbidden",
+            "title": "Action non autorisée",
+            "status": 403,
+            "code": "FORBIDDEN",
+            "correlationId": "corr-0003",
+            "detail": "Le rôle reporter ne peut pas créer d'intervention."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 403",
+            "ok": true
+          },
+          {
+            "label": "code FORBIDDEN",
+            "ok": true
+          },
+          {
+            "label": "statut 403 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Demandeuse affecte un technicien",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/forbidden",
+            "title": "Action non autorisée",
+            "status": 403,
+            "code": "FORBIDDEN",
+            "correlationId": "corr-0004",
+            "detail": "Le rôle requester ne peut pas affecter un technicien."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 403",
+            "ok": true
+          },
+          {
+            "label": "code FORBIDDEN",
+            "ok": true
+          },
+          {
+            "label": "statut 403 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Technicien modifie le titre de son intervention",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"title\": \"Titre modifié par Samir\"}",
+        "response": {
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/forbidden",
+            "title": "Action non autorisée",
+            "status": 403,
+            "code": "FORBIDDEN",
+            "correlationId": "corr-0005",
+            "detail": "Le rôle technician ne peut pas modifier une intervention."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 403",
+            "ok": true
+          },
+          {
+            "label": "code FORBIDDEN",
+            "ok": true
+          },
+          {
+            "label": "statut 403 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S10",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Annuler I103 terminée",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I103/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"to\": \"CANCELLED\"}",
+        "response": {
+          "status": 409,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-transition",
+            "title": "Transition interdite",
+            "status": 409,
+            "code": "INVALID_TRANSITION",
+            "correlationId": "corr-0001",
+            "detail": "DONE → CANCELLED n'est pas autorisé.",
+            "currentStatus": "DONE"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 409",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_TRANSITION",
+            "ok": true
+          },
+          {
+            "label": "statut 409 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "currentStatus DONE",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Affecter I103 terminée",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I103/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 409,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-state",
+            "title": "Affectation impossible dans cet état",
+            "status": 409,
+            "code": "INVALID_STATE",
+            "correlationId": "corr-0002",
+            "detail": "Une intervention DONE ne peut plus être affectée.",
+            "currentStatus": "DONE"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 409",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_STATE",
+            "ok": true
+          },
+          {
+            "label": "statut 409 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Planificateur force IN_PROGRESS",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I101/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"to\": \"IN_PROGRESS\"}",
+        "response": {
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/forbidden",
+            "title": "Action non autorisée",
+            "status": 403,
+            "code": "FORBIDDEN",
+            "correlationId": "corr-0003",
+            "detail": "Le rôle planner ne peut pas demander IN_PROGRESS."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 403",
+            "ok": true
+          },
+          {
+            "label": "code FORBIDDEN",
+            "ok": true
+          },
+          {
+            "label": "statut 403 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Demandeuse corrige une demande ASSIGNED",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I101 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"priority\": \"HIGH\"}",
+        "response": {
+          "status": 409,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-state",
+            "title": "Modification impossible dans cet état",
+            "status": 409,
+            "code": "INVALID_STATE",
+            "correlationId": "corr-0004",
+            "detail": "Le rôle requester ne peut modifier une intervention ASSIGNED.",
+            "currentStatus": "ASSIGNED"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 409",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_STATE",
+            "ok": true
+          },
+          {
+            "label": "statut 409 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Retour vers NEW demandé",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I103/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"to\": \"NEW\"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0005",
+            "errors": [
+              {
+                "field": "to",
+                "code": "INVALID_VALUE",
+                "message": "Valeurs : IN_PROGRESS, DONE, CANCELLED (ASSIGNED via /assignment)."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ to=INVALID_VALUE",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S11",
+    "ok": true,
+    "effect": {
+      "label": "événements r3 UPDATED et r4 ASSIGNED, aucun pour les tentatives rejetées",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Lecture : ETag rev-2",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-2\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-20T08:00:00Z",
+            "createdBy": "U02",
+            "revision": 2
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "ETag \"rev-2\"",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Mutation sans If-Match",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\n\n{\"priority\": \"HIGH\"}",
+        "response": {
+          "status": 428,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/precondition-required",
+            "title": "En-tête If-Match obligatoire",
+            "status": 428,
+            "code": "PRECONDITION_REQUIRED",
+            "correlationId": "corr-0002"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 428",
+            "ok": true
+          },
+          {
+            "label": "code PRECONDITION_REQUIRED",
+            "ok": true
+          },
+          {
+            "label": "statut 428 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Nora relève la priorité (If-Match rev-2)",
+        "operation": "updateIntervention",
+        "request": "PATCH /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"priority\": \"HIGH\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "HIGH",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U02",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour updateIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/modification-200.json",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Collègue affecte T01 depuis l'écran ancien (If-Match rev-2)",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 412,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "ETag": "\"rev-3\"",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/precondition-failed",
+            "title": "Intervention modifiée entre-temps",
+            "status": 412,
+            "code": "PRECONDITION_FAILED",
+            "correlationId": "corr-0004",
+            "detail": "If-Match \"rev-2\" ne correspond plus à la révision 3.",
+            "currentRevision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 412",
+            "ok": true
+          },
+          {
+            "label": "code PRECONDITION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "statut 412 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "currentRevision 3 et ETag rev-3",
+            "ok": true
+          },
+          {
+            "label": "I100 inchangée : NEW, sans technicien",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Relecture par le collègue",
+        "operation": "getIntervention",
+        "request": "GET /v2/interventions/I100 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "HIGH",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U02",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour getIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "priorité HIGH visible (décision de Nora conservée)",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Nouvel envoi conscient avec rev-3",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-4\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0006"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "HIGH",
+            "status": "ASSIGNED",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:02Z",
+            "createdBy": "U02",
+            "revision": 4
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "ASSIGNED, T01, priorité HIGH, révision 4",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S12",
+    "ok": true,
+    "effect": {
+      "label": "I102 CANCELLED et I104 créée ; aucune mutation par l'ancien lien GET",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "BI lit la liste v1 ouverte",
+        "operation": "v1.list",
+        "request": "GET /api/interventions?state=open&page=0&size=20 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "data": [
+              {
+                "id": "I102",
+                "title": "Éclairage couloir étage",
+                "status": "NEW",
+                "statusDetail": "NEW"
+              },
+              {
+                "id": "I101",
+                "title": "Climatisation salle réunion",
+                "status": "ASSIGNED",
+                "statusDetail": "ASSIGNED"
+              },
+              {
+                "id": "I100",
+                "title": "Porte bloquée accueil",
+                "status": "NEW",
+                "statusDetail": "NEW"
+              }
+            ],
+            "currentPage": 1,
+            "total": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "enveloppe v1 {data, currentPage, total}, 3 lignes C01 ouvertes",
+            "ok": true
+          },
+          {
+            "label": "aucune ligne C02",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Lina lit I200 via v1 avec X-Tenant: C02",
+        "operation": "v1.detail",
+        "request": "GET /api/intervention/I200 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nX-Tenant: C02",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "success": false,
+            "error": "not_found"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "format v1 « not_found », identique à une absence",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "BI lit l'historique v1",
+        "operation": "v1.history",
+        "request": "GET /api/interventions/I101/history HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": [
+            {
+              "actorId": "U01",
+              "kind": "CREATED",
+              "at": "2026-10-20T08:00:00Z"
+            },
+            {
+              "actorId": "U02",
+              "kind": "ASSIGNED",
+              "at": "2026-10-21T09:00:00Z"
+            }
+          ]
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "tableau [{actorId, kind, at}] ordonné",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Liste v1 vide : comportement v1 conservé",
+        "operation": "v1.list",
+        "request": "GET /api/interventions?state=open&site=S03 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "success": false,
+            "error": "no_results"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 404",
+            "ok": true
+          },
+          {
+            "label": "{success:false, error:no_results}",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Ancien lien d'affectation GET",
+        "operation": "v1.assign",
+        "request": "GET /api/assign?id=I100&tech=T01 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 410,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "success": false,
+            "error": "gone",
+            "see": "/v2/interventions/{id}/assignment"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 410",
+            "ok": true
+          },
+          {
+            "label": "aucune mutation",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Annulation v2 de I102 puis lecture v1",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I102/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-1\"\n\n{\"to\": \"CANCELLED\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-2\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0006"
+          },
+          "body": {
+            "id": "I102",
+            "tenantId": "C01",
+            "siteId": "S02",
+            "title": "Éclairage couloir étage",
+            "priority": "LOW",
+            "status": "CANCELLED",
+            "technicianId": null,
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U02",
+            "revision": 2
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Lecture v1 de I102 annulée",
+        "operation": "v1.detail",
+        "request": "GET /api/intervention/I102 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0007"
+          },
+          "body": {
+            "id": "I102",
+            "title": "Éclairage couloir étage",
+            "status": "CLOSED",
+            "statusDetail": "CANCELLED",
+            "tenantId": "C01",
+            "siteId": "S02",
+            "priority": "LOW",
+            "technicianId": null,
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "revision": 2
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "status v1 CLOSED, détail CANCELLED conservé",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Création v1 par le Portail",
+        "operation": "v1.create",
+        "request": "POST /api/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"title\": \"Porte bloquée\", \"siteId\": \"S01\", \"priority\": \"HIGH\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0008"
+          },
+          "body": {
+            "success": true,
+            "intervention_id": "I104",
+            "id": "I104"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "format v1 conservé + id additionnel",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Création v1 invalide : règle R02 appliquée aussi en v1",
+        "operation": "v1.create",
+        "request": "POST /api/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"title\": \"abc\", \"siteId\": \"S01\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0009"
+          },
+          "body": {
+            "success": false,
+            "error": "validation_failed"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "format d'erreur v1",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S13",
+    "ok": true,
+    "effect": {
+      "label": "une affectation, un événement ; rien pour T02, T03 et la répétition",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "T02 d'un autre tenant",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"technicianId\": \"T02\"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0001",
+            "errors": [
+              {
+                "field": "technicianId",
+                "code": "TECHNICIAN_NOT_FOUND",
+                "message": "Technicien inconnu dans votre organisation."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ technicianId=TECHNICIAN_NOT_FOUND",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "T03 inactif",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"technicianId\": \"T03\"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/validation-failed",
+            "title": "Données invalides",
+            "status": 422,
+            "code": "VALIDATION_FAILED",
+            "correlationId": "corr-0002",
+            "errors": [
+              {
+                "field": "technicianId",
+                "code": "TECHNICIAN_INACTIVE",
+                "message": "Technicien inactif : affectation impossible."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code VALIDATION_FAILED",
+            "ok": true
+          },
+          {
+            "label": "erreur de champ technicianId=TECHNICIAN_INACTIVE",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "T01 actif",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "NORMAL",
+            "status": "ASSIGNED",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U02",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/affectation-200.json",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Répétition (rafraîchissement, robot)",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "NORMAL",
+            "status": "ASSIGNED",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U02",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "révision toujours 3",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Historique",
+        "operation": "listInterventionEvents",
+        "request": "GET /v2/interventions/I100/events HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "items": [
+              {
+                "eventId": "E100-1",
+                "interventionId": "I100",
+                "revision": 1,
+                "type": "CREATED",
+                "at": "2026-10-20T08:00:00Z",
+                "actor": {
+                  "userId": "U02",
+                  "role": "planner"
+                },
+                "changes": [
+                  {
+                    "field": "status",
+                    "from": null,
+                    "to": "NEW"
+                  },
+                  {
+                    "field": "priority",
+                    "from": null,
+                    "to": "NORMAL"
+                  },
+                  {
+                    "field": "title"
+                  }
+                ]
+              },
+              {
+                "eventId": "E100-2",
+                "interventionId": "I100",
+                "revision": 2,
+                "type": "UPDATED",
+                "at": "2026-10-20T08:00:00Z",
+                "actor": {
+                  "userId": "U02",
+                  "role": "planner"
+                },
+                "changes": [
+                  {
+                    "field": "title"
+                  }
+                ]
+              },
+              {
+                "eventId": "E100-3",
+                "interventionId": "I100",
+                "revision": 3,
+                "type": "ASSIGNED",
+                "at": "2026-10-27T09:00:01Z",
+                "actor": {
+                  "userId": "U02",
+                  "role": "planner"
+                },
+                "changes": [
+                  {
+                    "field": "technicianId",
+                    "from": null,
+                    "to": "T01"
+                  },
+                  {
+                    "field": "status",
+                    "from": "NEW",
+                    "to": "ASSIGNED"
+                  }
+                ]
+              }
+            ],
+            "page": {
+              "limit": 50,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 3
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventionEvents",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/historique-200.json",
+            "ok": true
+          },
+          {
+            "label": "un seul événement ASSIGNED décrivant technicien ET statut",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S14",
+    "ok": true,
+    "effect": {
+      "label": "deux événements STATUS_CHANGED",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Samir liste ses interventions",
+        "operation": "listInterventions",
+        "request": "GET /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "items": [
+              {
+                "id": "I101",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Climatisation salle réunion",
+                "priority": "NORMAL",
+                "status": "ASSIGNED",
+                "technicianId": "T01",
+                "createdAt": "2026-10-20T08:00:00Z",
+                "updatedAt": "2026-10-21T09:00:00Z",
+                "createdBy": "U01",
+                "revision": 2
+              },
+              {
+                "id": "I103",
+                "tenantId": "C01",
+                "siteId": "S01",
+                "title": "Serrure salle serveur",
+                "priority": "HIGH",
+                "status": "DONE",
+                "technicianId": "T01",
+                "createdAt": "2026-10-19T08:00:00Z",
+                "updatedAt": "2026-10-21T11:00:00Z",
+                "createdBy": "U01",
+                "revision": 3
+              }
+            ],
+            "page": {
+              "limit": 20,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 2
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventions",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "uniquement I101 et I103 (ses affectations)",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Démarrer I101",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I101/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"to\": \"IN_PROGRESS\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "id": "I101",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Climatisation salle réunion",
+            "priority": "NORMAL",
+            "status": "IN_PROGRESS",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "corps identique à Exemples_JSON/transition-200.json",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Terminer I101",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I101/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"to\": \"DONE\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-4\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "id": "I101",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Climatisation salle réunion",
+            "priority": "NORMAL",
+            "status": "DONE",
+            "technicianId": "T01",
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:02Z",
+            "createdBy": "U01",
+            "revision": 4
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "DONE rév. 4",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Terminer à nouveau",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I101/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01\nContent-Type: application/json\nIf-Match: \"rev-4\"\n\n{\"to\": \"DONE\"}",
+        "response": {
+          "status": 409,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-transition",
+            "title": "Transition interdite",
+            "status": 409,
+            "code": "INVALID_TRANSITION",
+            "correlationId": "corr-0004",
+            "detail": "DONE → DONE n'est pas autorisé.",
+            "currentStatus": "DONE"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 409",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_TRANSITION",
+            "ok": true
+          },
+          {
+            "label": "statut 409 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Le technicien annule",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I101/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01\nContent-Type: application/json\nIf-Match: \"rev-4\"\n\n{\"to\": \"CANCELLED\"}",
+        "response": {
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0005"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/forbidden",
+            "title": "Action non autorisée",
+            "status": 403,
+            "code": "FORBIDDEN",
+            "correlationId": "corr-0005",
+            "detail": "Le rôle technician ne peut pas demander CANCELLED."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 403",
+            "ok": true
+          },
+          {
+            "label": "code FORBIDDEN",
+            "ok": true
+          },
+          {
+            "label": "statut 403 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S15",
+    "ok": true,
+    "effect": {
+      "label": "aucun",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Reporter, limit=2",
+        "operation": "listInterventionEvents",
+        "request": "GET /v2/interventions/I103/events?limit=2 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "items": [
+              {
+                "eventId": "E103-1",
+                "interventionId": "I103",
+                "revision": 1,
+                "type": "CREATED",
+                "at": "2026-10-19T08:00:00Z",
+                "actor": {
+                  "userId": "U01",
+                  "role": "requester"
+                },
+                "changes": [
+                  {
+                    "field": "status",
+                    "from": null,
+                    "to": "NEW"
+                  },
+                  {
+                    "field": "priority",
+                    "from": null,
+                    "to": "HIGH"
+                  },
+                  {
+                    "field": "title"
+                  }
+                ]
+              },
+              {
+                "eventId": "E103-2",
+                "interventionId": "I103",
+                "revision": 2,
+                "type": "ASSIGNED",
+                "at": "2026-10-20T10:00:00Z",
+                "actor": {
+                  "userId": "U02",
+                  "role": "planner"
+                },
+                "changes": [
+                  {
+                    "field": "technicianId",
+                    "from": null,
+                    "to": "T01"
+                  },
+                  {
+                    "field": "status",
+                    "from": "NEW",
+                    "to": "ASSIGNED"
+                  }
+                ]
+              }
+            ],
+            "page": {
+              "limit": 2,
+              "hasNext": true,
+              "nextCursor": "eyJrIjpbMiwiIl0sImYiOnsiaW50ZXJ2ZW50aW9uSWQiOiJJMTAzIn19",
+              "totalItems": 3
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventionEvents",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "révisions 1 et 2, hasNext",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Page suivante",
+        "operation": "listInterventionEvents",
+        "request": "GET /v2/interventions/I103/events?limit=2&cursor=eyJrIjpbMiwiIl0sImYiOnsiaW50ZXJ2ZW50aW9uSWQiOiJJMTAzIn19 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "items": [
+              {
+                "eventId": "E103-3",
+                "interventionId": "I103",
+                "revision": 3,
+                "type": "STATUS_CHANGED",
+                "at": "2026-10-21T11:00:00Z",
+                "actor": {
+                  "userId": "U03",
+                  "role": "technician"
+                },
+                "changes": [
+                  {
+                    "field": "status",
+                    "from": "ASSIGNED",
+                    "to": "DONE"
+                  }
+                ]
+              }
+            ],
+            "page": {
+              "limit": 2,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 3
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventionEvents",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "révision 3 seule, fin",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Technicien affecté",
+        "operation": "listInterventionEvents",
+        "request": "GET /v2/interventions/I103/events HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U03-C01",
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "items": [
+              {
+                "eventId": "E103-1",
+                "interventionId": "I103",
+                "revision": 1,
+                "type": "CREATED",
+                "at": "2026-10-19T08:00:00Z",
+                "actor": {
+                  "userId": "U01",
+                  "role": "requester"
+                },
+                "changes": [
+                  {
+                    "field": "status",
+                    "from": null,
+                    "to": "NEW"
+                  },
+                  {
+                    "field": "priority",
+                    "from": null,
+                    "to": "HIGH"
+                  },
+                  {
+                    "field": "title"
+                  }
+                ]
+              },
+              {
+                "eventId": "E103-2",
+                "interventionId": "I103",
+                "revision": 2,
+                "type": "ASSIGNED",
+                "at": "2026-10-20T10:00:00Z",
+                "actor": {
+                  "userId": "U02",
+                  "role": "planner"
+                },
+                "changes": [
+                  {
+                    "field": "technicianId",
+                    "from": null,
+                    "to": "T01"
+                  },
+                  {
+                    "field": "status",
+                    "from": "NEW",
+                    "to": "ASSIGNED"
+                  }
+                ]
+              },
+              {
+                "eventId": "E103-3",
+                "interventionId": "I103",
+                "revision": 3,
+                "type": "STATUS_CHANGED",
+                "at": "2026-10-21T11:00:00Z",
+                "actor": {
+                  "userId": "U03",
+                  "role": "technician"
+                },
+                "changes": [
+                  {
+                    "field": "status",
+                    "from": "ASSIGNED",
+                    "to": "DONE"
+                  }
+                ]
+              }
+            ],
+            "page": {
+              "limit": 50,
+              "hasNext": false,
+              "nextCursor": null,
+              "totalItems": 3
+            }
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour listInterventionEvents",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "titre jamais recopié",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "limit=500",
+        "operation": "listInterventionEvents",
+        "request": "GET /v2/interventions/I103/events?limit=500 HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-BI01-C01",
+        "response": {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0004"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-parameter",
+            "title": "Paramètre invalide",
+            "status": 400,
+            "code": "INVALID_PARAMETER",
+            "correlationId": "corr-0004",
+            "detail": "limit doit être compris entre 1 et 100.",
+            "errors": [
+              {
+                "field": "limit",
+                "code": "OUT_OF_RANGE",
+                "message": "Valeur entre 1 et 100."
+              }
+            ]
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 400",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_PARAMETER",
+            "ok": true
+          },
+          {
+            "label": "statut 400 documenté pour listInterventionEvents",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S16",
+    "ok": true,
+    "effect": {
+      "label": "une seule création",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Premier envoi",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIdempotency-Key: lina-7f3c2a91\n\n{\"siteId\": \"S01\", \"title\": \"Porte bloquée\"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I104",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Renvoi identique après coupure",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIdempotency-Key: lina-7f3c2a91\n\n{\"siteId\": \"S01\", \"title\": \"Porte bloquée\"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I104",
+            "Idempotent-Replayed": "true",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête Idempotent-Replayed déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "même id I104 et Idempotent-Replayed: true",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Même clé, autre contenu",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIdempotency-Key: lina-7f3c2a91\n\n{\"siteId\": \"S02\", \"title\": \"Autre demande\"}",
+        "response": {
+          "status": 422,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0003"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/idempotency-key-reused",
+            "title": "Clé d'idempotence déjà utilisée",
+            "status": 422,
+            "code": "IDEMPOTENCY_KEY_REUSED",
+            "correlationId": "corr-0003",
+            "detail": "Cette clé a servi pour un autre contenu."
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 422",
+            "ok": true
+          },
+          {
+            "label": "code IDEMPOTENCY_KEY_REUSED",
+            "ok": true
+          },
+          {
+            "label": "statut 422 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S17",
+    "ok": true,
+    "effect": {
+      "label": "un événement STATUS_CHANGED",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Lina annule I100",
+        "operation": "transitionIntervention",
+        "request": "POST /v2/interventions/I100/transitions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\nIf-Match: \"rev-2\"\n\n{\"to\": \"CANCELLED\"}",
+        "response": {
+          "status": 200,
+          "headers": {
+            "ETag": "\"rev-3\"",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "id": "I100",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Porte bloquée accueil",
+            "priority": "NORMAL",
+            "status": "CANCELLED",
+            "technicianId": null,
+            "createdAt": "2026-10-20T08:00:00Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U02",
+            "revision": 3
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 200",
+            "ok": true
+          },
+          {
+            "label": "statut 200 documenté pour transitionIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "CANCELLED, distinct de DONE",
+            "ok": true
+          }
+        ]
+      },
+      {
+        "label": "Nora affecte ensuite",
+        "operation": "assignIntervention",
+        "request": "PUT /v2/interventions/I100/assignment HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U02-C01\nContent-Type: application/json\nIf-Match: \"rev-3\"\n\n{\"technicianId\": \"T01\"}",
+        "response": {
+          "status": 409,
+          "headers": {
+            "Content-Type": "application/problem+json",
+            "X-Correlation-Id": "corr-0002"
+          },
+          "body": {
+            "type": "https://api.atlas.invalid/problems/invalid-state",
+            "title": "Affectation impossible dans cet état",
+            "status": 409,
+            "code": "INVALID_STATE",
+            "correlationId": "corr-0002",
+            "detail": "Une intervention CANCELLED ne peut plus être affectée.",
+            "currentStatus": "CANCELLED"
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 409",
+            "ok": true
+          },
+          {
+            "label": "code INVALID_STATE",
+            "ok": true
+          },
+          {
+            "label": "statut 409 documenté pour assignIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/problem+json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S18",
+    "ok": true,
+    "effect": {
+      "label": "+1 intervention",
+      "ok": true
+    },
+    "steps": [
+      {
+        "label": "Création",
+        "operation": "createIntervention",
+        "request": "POST /v2/interventions HTTP/1.1\nHost: api.atlas.invalid\nAuthorization: Bearer DEMO-U01-C01\nContent-Type: application/json\n\n{\"siteId\": \"S01\", \"title\": \"Serrure bureau direction\"}",
+        "response": {
+          "status": 201,
+          "headers": {
+            "ETag": "\"rev-1\"",
+            "Location": "/v2/interventions/I104",
+            "Content-Type": "application/json",
+            "X-Correlation-Id": "corr-0001"
+          },
+          "body": {
+            "id": "I104",
+            "tenantId": "C01",
+            "siteId": "S01",
+            "title": "Serrure bureau direction",
+            "priority": "NORMAL",
+            "status": "NEW",
+            "technicianId": null,
+            "createdAt": "2026-10-27T09:00:01Z",
+            "updatedAt": "2026-10-27T09:00:01Z",
+            "createdBy": "U01",
+            "revision": 1
+          }
+        },
+        "checks": [
+          {
+            "label": "statut 201",
+            "ok": true
+          },
+          {
+            "label": "statut 201 documenté pour createIntervention",
+            "ok": true
+          },
+          {
+            "label": "Content-Type application/json",
+            "ok": true
+          },
+          {
+            "label": "corps conforme au schéma du contrat",
+            "ok": true
+          },
+          {
+            "label": "en-tête Location déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête ETag déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "en-tête X-Correlation-Id déclaré, présent et conforme",
+            "ok": true
+          },
+          {
+            "label": "journal : correlationId, opération, statut ; ni jeton ni titre",
+            "ok": true
+          }
+        ]
+      }
+    ]
+  }
+]

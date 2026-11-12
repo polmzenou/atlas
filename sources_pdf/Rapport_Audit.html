@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Rapport d'audit ATLAS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="cover">
+  <h1>Rapport d'audit et de mission</h1>
+  <div class="sub">ATLAS — coordination Front-End / Back-End des interventions</div>
+  <dl>
+    <dt>Auteur</dt><dd>Paul Mehr — Mastère 2 Informatique, Ynov Strasbourg (travail individuel)</dd>
+    <dt>Commanditaire</dt><dd>Claire Martin, direction des opérations ATLAS (personnage fictif)</dd>
+    <dt>Version</dt><dd>1.0 — remise du 17 novembre 2026</dd>
+    <dt>Livrables liés</dt><dd>Architecture.pdf · Catalogue_REST.md · Contrat_API.yaml · Exemples_JSON/ · Tests_et_Validations/ · Decisions_Techniques.md · Sources_et_IA.md</dd>
+    <dt>Nature</dt><dd>Environnement fictif. Les preuves de comportement sont des captures statiques et une simulation locale ; aucune mesure de production.</dd>
+  </dl>
+  <div class="box" style="margin-top:12mm">
+    <b>Synthèse.</b> Deux défauts critiques exigent une correction avant toute évolution :
+    l'API fait confiance au navigateur pour le tenant (lecture d'une intervention d'un autre client,
+    INC-06), et l'affectation est une lecture HTTP non atomique qui accepte un technicien d'un autre
+    client (INC-03/07/10). Les autres incidents viennent de quatre causes : des règles métier confiées
+    aux écrans, un contrat qui dérive sans versionnement, l'absence de contrôle de concurrence et
+    un format d'erreur inexploitable. La cible proposée est une API v2 où le serveur décide à partir
+    de l'identité validée (révision <code>If-Match</code>, erreurs RFC 9457, pagination par curseur),
+    avec un adaptateur v1 conservé et sécurisé jusqu'au 31/01/2027. Le contrat est valide
+    (OpenAPI 3.1). 18 scénarios et 82 requêtes simulées le vérifient, et 9 défauts historiques
+    réinjectés sont tous détectés.
+  </div>
+</section>
+
+<nav class="toc">
+  <h2>Sommaire</h2>
+  <ol>
+    <li>Contexte</li><li>Méthode</li><li>Problèmes priorisés</li><li>Architecture</li><li>Décisions</li>
+    <li>Alternatives et compromis</li><li>Synthèse API</li><li>Vérifications et preuves</li>
+    <li>Risques, dépendances et hypothèses</li><li>Retour critique</li>
+    <li>Annexe A — Tableau d'audit</li><li>Annexe B — Registre des risques</li>
+  </ol>
+</nav>
+
+<h2>1. Contexte</h2>
+<p>ATLAS coordonne la maintenance d'équipements de bureaux : 42 entreprises clientes (tenants), 180 sites,
+environ 1 600 demandes par semaine (P02). Quatre consommateurs partagent un service API monolithique et
+PostgreSQL :</p>
+<ul>
+  <li>Portail Client 1.8, utilisé par douze tenants, et Export BI 0.6 (nocturne) consomment la v1 via un adaptateur ;</li>
+  <li>Console Ops 2.4 et Terrain 0.9 appellent directement les routes <code>/api</code> (P05).</li>
+</ul>
+<p>Depuis septembre, des demandes invisibles et des affectations perdues sont compensées par téléphone (P01).</p>
+<p><b>Mission</b> : rendre explicites les incompatibilités, proposer des frontières Front/Back et un contrat stable
+couvrant six opérations (liste, détail, création, modification, affectation, historique), avec une stratégie de
+transition. <b>Hors périmètre</b> : facturation, pièces jointes, géolocalisation, notifications, fournisseur
+d'identité, développement complet. <b>Référence des besoins</b> : la fiche produit P03 du 23/10/2026 (R01–R12,
+N01–N05), qui prime sur les notes plus anciennes (P01).</p>
+
+<h2>2. Méthode</h2>
+<ol>
+  <li><b>Lecture ordonnée</b> des 44 documents. Chaque pièce est classée par date et par autorité :
+  P03 fait foi pour le besoin ; captures, extraits de code et données sont des observations ; wiki P06 et OpenAPI
+  initial sont des documentations à confronter.</li>
+  <li><b>Matrice de preuves</b> : pour chaque constat, fait observé (pièce et ligne), hypothèse explicative,
+  décision proposée, en trois colonnes séparées (DEMARRER.md). Tout désaccord important est recoupé par au moins
+  deux pièces.</li>
+  <li><b>Suivi d'identifiants</b> de bout en bout (I100, I101, I200, T02, T03) entre données, captures, code
+  et parcours U1–U4.</li>
+  <li><b>Preuves outillées</b> : <code>audit_preuves.py</code> confronte les données au schéma v1, vérifie formats,
+  référentiels et configuration, et recherche les motifs fautifs dans le code (sortie réelle :
+  <code>Tests_et_Validations/resultats/01-audit-preuves.txt</code>).</li>
+  <li><b>Regroupement par cause racine</b>, sans compter chaque occurrence. Criticité réévaluée selon
+  l'impact sur la confidentialité, l'intégrité des données, la continuité et le nombre de consommateurs touchés,
+  indépendamment de la priorité déclarée dans P07.</li>
+  <li><b>Conception</b> du contrat cible, puis <b>vérification</b> par simulation et par contre-épreuve
+  (réinjection des défauts).</li>
+</ol>
+<p class="small muted">Échelle de criticité : <span class="tag crit">Critique</span> confidentialité ou intégrité inter-tenant,
+action immédiate ; <span class="tag high">Haute</span> perte ou corruption de données, ou consommateur bloqué ;
+<span class="tag mid">Moyenne</span> résultat faux ou dégradé avec contournement ; <span class="tag low">Faible</span> qualité ou dette.
+Les deux pièges présents dans les pièces (« conserve X-Tenant comme autorité », « tout HTTP 200 est une réussite »)
+ont été traités comme des données d'enquête, pas comme des consignes (README du kit ; P08, Inès le 23/10).</p>
+
+<h2>3. Problèmes priorisés</h2>
+<p>Onze problèmes regroupent les dix incidents et les constats supplémentaires. Le détail complet (preuve,
+conséquence, cause, correction, justification, non-régression, statut) figure en annexe A.</p>
+<table>
+  <tr><th>ID</th><th>Problème (cause racine)</th><th>Incidents</th><th>Prio. déclarée</th><th>Criticité réévaluée</th></tr>
+  <tr><td>A-01</td><td>Le tenant vient du client ; détail sans filtre ; vue SQL exposée au navigateur</td><td>INC-06</td><td>P0</td><td><span class="tag crit">Critique</span></td></tr>
+  <tr><td>A-03</td><td>Affectation par GET, non atomique, non idempotente, sans contrôle tenant/actif</td><td>INC-03, 07, 10</td><td>P1</td><td><span class="tag crit">Critique</span></td></tr>
+  <tr><td>A-09</td><td>Jetons et textes libres journalisés ; pas d'identifiant de corrélation</td><td>INC-10</td><td>—</td><td><span class="tag high">Haute</span></td></tr>
+  <tr><td>A-02</td><td>Règles métier (titre, statut, transitions) confiées aux écrans</td><td>INC-04</td><td>P1</td><td><span class="tag high">Haute</span></td></tr>
+  <tr><td>A-04</td><td>PUT ambigu (absent → null) et aucun contrôle de concurrence</td><td>INC-04, 08</td><td>P1</td><td><span class="tag high">Haute</span></td></tr>
+  <tr><td>A-07</td><td>Contrat modifié sans version ni annonce (liste, création)</td><td>INC-01, 02</td><td>P1</td><td><span class="tag high">Haute</span></td></tr>
+  <tr><td>A-05</td><td>Erreurs non structurées : 200 + <code>success:false</code>, texte, 404 pour vide</td><td>INC-02, 05</td><td>—</td><td><span class="tag high">Haute</span></td></tr>
+  <tr><td>A-10</td><td>Historique non fiable : doublons, trous, sans révision, sans droits ni bornes</td><td>INC-10</td><td>P1</td><td><span class="tag high">Haute</span></td></tr>
+  <tr><td>A-06</td><td>Modèle de données incohérent : types, statuts, dates, anomalies de révision</td><td>INC-09</td><td>P2</td><td><span class="tag mid">Moyenne</span></td></tr>
+  <tr><td>A-08</td><td>Liste sans ordre, filtre site local, taille libre</td><td>INC-05</td><td>P2</td><td><span class="tag mid">Moyenne</span></td></tr>
+  <tr><td>A-11</td><td>Console Ops : priorité forcée à HIGH, lecture de <code>body.id</code> inexistant</td><td>INC-02</td><td>—</td><td><span class="tag mid">Moyenne</span></td></tr>
+</table>
+
+<div class="issue">
+<h3>A-01 — Isolement des tenants confié au client <span class="tag crit">Critique</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>http/isolement.http</code> : avec le jeton <code>DEMO-U01-C01</code> (Lina, C01) et <code>X-Tenant: C02</code>,
+<code>GET /api/intervention/I200</code> renvoie 200 et le contenu de I200 (C02). <code>back.mjs detail</code> :
+<code>db.byId(req.params.id)</code>, sans tenant. <code>back.mjs create</code> : <code>tenantId: req.headers['x-tenant']</code>.
+<code>config-demo.json</code> : <code>"public": true</code>, <code>"tenantHeader": "C01"</code>, chaîne <code>postgresql://demo:…@</code>
+utilisée par <code>front.mjs fastList</code> (SQL depuis le client). P05 : « L'API lit le tenant envoyé dans X-Tenant » ;
+la cartographie n'a pas été révisée après l'accès SQL (Hugo, 20/10). Le support confirme la divulgation (M3).
+<code>http/liste.http</code> (Nora, <code>X-Tenant: C01</code>, <code>size=20</code>) renvoie <code>"total": 5</code> avec une seule ligne,
+alors que T01 ne contient que 4 interventions de C01 (I100–I103) et 5 au total avec I200 de C02.</span>
+<b>Hypothèse</b><span>Le jeton est validé mais ses claims ne sont pas utilisés pour l'autorisation. Le tenant est pris de l'en-tête
+ou ignoré. La vue SQL, accessible avec des identifiants présents dans la configuration publique, permet de lire
+tous les tenants (requête paramétrée par un tenant choisi par le client). Le <code>total</code> de la liste est compté
+sans filtre de tenant (5 = toutes les lignes) ; la page, elle, est filtrée ou tronquée autrement, d'où 1 ligne pour total 5.</span>
+<b>Conséquence</b><span>Violation de R07 et R03 : lecture et création au nom d'un autre client, contournement complet de l'API par SQL.
+Même sans contenu, le total divulgue le volume d'activité des autres clients et rend la pagination incohérente.
+Atteinte à la confiance de 42 clients (P01). Du contenu a déjà été divulgué (M3).</span>
+<b>Décision</b><span>ADR-1. Identité et tenant lus seulement dans le jeton ; filtre <code>tenant_id</code> dans chaque requête,
+y compris le comptage <code>totalItems</code> (ADR-5) ; 404
+indiscernable ; révocation immédiate des identifiants de la vue SQL et retrait de la configuration publique ; analyse
+des accès passés (registre R-11). Vérifié par S01, S07, S08 et par la contre-épreuve.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-03 — Affectation : action exposée en GET, sans contrôles ni atomicité <span class="tag crit">Critique</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>http/affectation.http</code> : <code>GET /api/assign?id=I100&amp;tech=T02</code> → <code>200 text/plain OK</code>, alors que
+T02 appartient à C02 (<code>techniciens.json</code>). <code>back.mjs assign</code> : seul <code>technicianExists</code> est vérifié ; réponse
+<code>200 'unknown'</code> en cas d'échec ; trois écritures successives <code>setTechnician</code>, <code>setStatus</code>, <code>addEvent</code>, en
+transactions séparées (P05). <code>http/historique.http</code> : deux événements ASSIGNED identiques à une seconde d'écart.
+INC-03 : un préchargement a suivi le lien.</span>
+<b>Hypothèse</b><span>Le préchargeur de navigateur ou de messagerie traite le lien GET comme une lecture sûre. L'absence de
+transaction explique les états « affecté sans ASSIGNED » et « mutation sans événement » d'INC-10.</span>
+<b>Conséquence</b><span>Association inter-tenant (R12, R05), technicien inactif affecté (T03), mutations involontaires,
+historique faux, états incohérents. Le planning n'est plus fiable.</span>
+<b>Décision</b><span>ADR-2 et ADR-4. <code>PUT /v2/interventions/{id}/assignment</code> idempotent, réservé au planner, avec
+<code>If-Match</code> ; technicien actif du tenant ; une transaction pour l'intervention, la révision et un événement unique.
+Ancienne route fermée (410) en phase 2. Vérifié par S13, S11, S12 étape 5.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-09 — Secrets et texte libre dans les journaux <span class="tag high">Haute</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>back.mjs create</code> : <code>log.info(req.headers.authorization, req.body.title)</code>. <code>config-demo.json</code> :
+<code>"logAuthorization": true</code>. P09 : la ligne Authorization et les titres sont consignés ; le support colle
+Authorization dans ses journaux (INC-10). Exigence N03.</span>
+<b>Conséquence</b><span>Un jeton journalisé permet d'usurper une session pendant sa validité. Les titres libres peuvent contenir
+des données personnelles et sortent de la durée de 30 jours prévue pour les journaux techniques.</span>
+<b>Décision</b><span>ADR-1. Journal technique limité à <code>correlationId</code>, opération, statut et durée ; <code>X-Correlation-Id</code> renvoyé
+et affiché par le Front ; purge des journaux existants et rotation des jetons concernés (R-10). Vérifié par S18.
+La rétention n'est vérifiée que par revue.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-02 — Règles métier confiées aux écrans <span class="tag high">Haute</span></h3>
+<div class="fhd">
+<b>Faits</b><span>P05 : le Portail valide la longueur du titre, Terrain calcule les transitions, l'API « enregistre ce que l'écran a
+validé ». <code>back.mjs create</code> n'applique aucune règle de titre et accepte <code>status: req.body.status</code> ;
+<code>update</code> recopie le statut reçu (M4 Bastien). INC-04 : une version envoyée par Ops a rouvert I103 (DONE).
+M2 : « le navigateur refuse les titres courts, donc l'API n'en a pas besoin ».</span>
+<b>Conséquence</b><span>R02, R03 et R04 ne sont garanties que pour les clients bien écrits. Un script ou un écran ancien crée des
+titres vides, des statuts arbitraires ou des retours arrière depuis un état terminal.</span>
+<b>Décision</b><span>ADR-1 et ADR-2. Toutes les validations et transitions sont appliquées par le serveur ; la prévalidation navigateur
+reste ergonomique (N05). Route <code>/transitions</code> avec matrice rôle × départ. Vérifié par S05, S10, S14, S17.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-04 — Sémantique de modification et concurrence <span class="tag high">Haute</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>http/modification.http</code> : PUT du seul titre de I101, puis la relecture donne <code>technicianId=null</code>.
+<code>back.mjs update</code> : <code>technicianId: req.body.technicianId || null</code>. <code>http/concurrence.http</code> : deux PUT sur
+I100 lu en révision 2 sont acceptés, la relecture garde le second et la priorité HIGH est perdue. Aucun en-tête
+conditionnel (INC-08). Le champ <code>revision</code> existe en base (P05).</span>
+<b>Conséquence</b><span>Perte silencieuse d'affectations et de décisions (R10, R11). Le technicien perd son travail (M4).</span>
+<b>Décision</b><span>ADR-2 et ADR-4. <code>PATCH</code> limité à titre et priorité (absent = conservé, <code>null</code> refusé) ;
+<code>ETag</code>/<code>If-Match</code> obligatoire ; 412 et relecture. Vérifié par S06, S11.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-07 — Contrat modifié sans version <span class="tag high">Haute</span></h3>
+<div class="fhd">
+<b>Faits</b><span>Liste : le wiki annonce un tableau nu, la capture du 20/10 renvoie <code>{data, currentPage, total}</code>
+(<code>liste.http</code>) ; <code>front.mjs load</code> appelle <code>items.map</code> (INC-01). Bastien : enveloppe ajoutée « sans annoncer
+de nouvelle version » et conversion <code>page=0</code> → 1 non publiée (M1). Création : le formulaire envoie
+<code>title</code>/<code>siteId</code>, le contrôleur lit <code>label</code>/<code>site_id</code> (INC-02) ; le wiki annonce 201 + Location,
+la capture renvoie 200 + <code>intervention_id</code> (<code>creation.http</code>). <code>openapi-initial.yaml</code> est
+syntaxiquement valide mais ne contient aucun schéma de réponse, aucune erreur ni sécurité
+(<code>audit_preuves.py</code>).</span>
+<b>Conséquence</b><span>Écran de file vide (INC-01) ; créations avec titre et site perdus (INC-02). Front et Back ne peuvent pas
+travailler séparément, ce qui est l'objectif même de P01.</span>
+<b>Décision</b><span>ADR-3. Contrat v2 versionné, publié et vérifié par des tests de contrat ; formats v1 observés gelés et documentés.
+Vérifié par <code>validate_contract.py</code>, S01, S12.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-05 — Erreurs non exploitables <span class="tag high">Haute</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>detail.http</code> : absence de ressource → <code>200 {"success":false,"error":"not_found"}</code>.
+<code>vide.http</code> : liste vide → 404. <code>back.mjs assign</code> → <code>200 'unknown'</code> en texte. P06 : erreurs « tantôt texte, tantôt
+<code>{success:false}</code> » ; le wiki conseille de ne tester que <code>success</code>. Une note d'ancien générateur impose « tout 200
+= réussite », démentie par le produit (M2).</span>
+<b>Conséquence</b><span>Le Front ne peut pas choisir une réaction (U1–U4). Cache, supervision et rejeux voient des succès.
+Une liste vide est prise pour une ressource disparue (INC-05).</span>
+<b>Décision</b><span>ADR-2. Statuts HTTP + <code>application/problem+json</code> + <code>code</code> stable + <code>errors[]</code> + <code>correlationId</code> ;
+liste vide en 200. Vérifié par 74 réponses v2 confrontées au contrat.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-10 — Historique non fiable <span class="tag high">Haute</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>historique.http</code> : événements <code>{actorId, kind, at}</code> sans révision, en double. P06 : aucun ordre,
+aucun droit de lecture, tableau complet sans plafond. INC-10 : mutation sans événement après un incident SQL.</span>
+<b>Hypothèse</b><span>Même cause que A-03 (écritures séparées), plus l'absence de règle « un événement par mutation effective ».</span>
+<b>Conséquence</b><span>Impossible d'expliquer une affectation contestée (U4, R09) ; preuve de service fausse pour les clients.</span>
+<b>Décision</b><span>Événement écrit dans la transaction de la mutation, avec révision, type, acteur, instant UTC et changements
+(sans texte libre) ; route paginée en lecture seule. Vérifié par S11, S13, S15.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-06 — Modèle de données incohérent <span class="tag mid">Moyenne</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>audit_preuves.py</code> confronte les 5 interventions et le détail capturé au schéma v1 : 17 écarts au total.
+<code>id</code> « I100 » est déclaré entier ; les statuts NEW/ASSIGNED/DONE sont hors de l'enum OPEN/CLOSED ;
+<code>technicianId</code> est requis mais <code>null</code> ; I101 a <code>priority: 2</code> et <code>createdAt: "20/10/2026 10:00"</code>.
+Un tri textuel place I101 avant le 19/10 (INC-09). I100 est en <code>revision: 2</code> avec <code>updatedAt == createdAt</code> ;
+I103 est DONE en révision 3, alors que le cycle complet en exige 4.</span>
+<b>Hypothèses</b><span>H2 : priorité 1/2/3 = LOW/NORMAL/HIGH. H3 : date en heure locale Europe/Paris, soit
+2026-10-20T08:00:00Z (UTC+2 avant le 25/10). I103 est un effet de l'ancienne recopie du statut (A-02).</span>
+<b>Conséquence</b><span>Clients générés qui rejettent les réponses ; BI qui convertit sans règle publiée ; tri et affichage dépendants du poste.</span>
+<b>Décision</b><span>Identifiants chaînes opaques, enums fermés, instants UTC <code>Z</code>, <code>technicianId</code> toujours présent et nullable.
+Migration des données avec confirmation de H2 et H3 dans les journaux serveur avant conversion, et marquage des
+événements hérités.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-08 — Liste non déterministe et filtrée localement <span class="tag mid">Moyenne</span></h3>
+<div class="fhd">
+<b>Faits</b><span>P06 : aucun ordre, taille « libre », filtre site sans paramètre publié. <code>front.mjs load</code> marque
+<code>visible: x.siteId === siteId</code> sur la page téléchargée (M1). I100 et I102 partagent un <code>createdAt</code>.
+INC-05 : lignes répétées entre page 0 et page 1, conséquence de la conversion 0 → 1 (M1).</span>
+<b>Conséquence</b><span>File de site incomplète, doublons, risque de charge non bornée (N04).</span>
+<b>Décision</b><span>ADR-5. Filtres serveur combinés par ET, ordre <code>createdAt</code> puis <code>id</code>, curseur, <code>limit</code> 1–100. Vérifié par S02, S03, S04.</span>
+</div></div>
+
+<div class="issue">
+<h3>A-11 — Défauts du consommateur Console Ops <span class="tag mid">Moyenne</span></h3>
+<div class="fhd">
+<b>Faits</b><span><code>front.mjs create</code> envoie <code>priority: 'HIGH'</code> en dur et renvoie <code>body.id</code>, absent de la réponse
+capturée (<code>intervention_id</code>), d'où le <code>undefined</code> d'INC-02. U1 attend la priorité par défaut NORMAL.</span>
+<b>Conséquence</b><span>Toutes les demandes créées par ce formulaire sont prioritaires, ce qui fausse l'arbitrage des files ; navigation impossible.</span>
+<b>Décision</b><span>Migration de Console Ops vers v2 : n'envoyer <code>priority</code> que si l'utilisateur l'a choisie, suivre <code>Location</code>.
+Contrôle : test de consommateur (hors simulateur) et revue du formulaire.</span>
+</div></div>
+
+<h2>4. Architecture</h2>
+<p>Détail dans <b>Architecture.pdf</b>. L'existant reconstitué diffère de la cartographie officielle (P05) sur trois flux
+non déclarés : la Console Ops lit PostgreSQL via la vue SQL, le navigateur fournit le tenant (<code>X-Tenant</code>) et les
+journaux reçoivent les jetons. La cible garde le monolithe et PostgreSQL (P09 hypothèses admises) et déplace
+toutes les décisions derrière une frontière de confiance unique, l'API v2 :</p>
+<ul>
+  <li>le fournisseur d'identité émet un jeton dont l'API lit tenant, rôle et technicien ;</li>
+  <li>une couche de service applique règles, transitions et visibilité ;</li>
+  <li>une couche d'accès aux données impose le prédicat de tenant et la transaction (mutation, révision, événement) ;</li>
+  <li>l'adaptateur v1 n'est plus qu'un traducteur de format branché sur la v2.</li>
+</ul>
+
+<h2>5. Décisions</h2>
+<table>
+  <tr><th>ADR</th><th>Décision</th><th>Problèmes traités</th></tr>
+  <tr><td>ADR-1</td><td>Frontière de confiance : identité validée seule source du tenant et du rôle ; serveur seul juge ; aucun accès client au stockage ; journaux minimisés</td><td>A-01, A-02, A-09</td></tr>
+  <tr><td>ADR-2</td><td>PATCH limité aux champs libres, PUT <code>/assignment</code>, POST <code>/transitions</code> ; erreurs RFC 9457 ; 201 + Location</td><td>A-02, A-03, A-04, A-05, A-07</td></tr>
+  <tr><td>ADR-3</td><td><code>/v2</code> séparée, adaptateur v1 conservé et sécurisé, migration par consommateur en 4 phases</td><td>A-07, continuité N01</td></tr>
+  <tr><td>ADR-4</td><td>Concurrence optimiste : <code>ETag "rev-N"</code>, <code>If-Match</code> obligatoire, 412/428, UPDATE conditionnel transactionnel</td><td>A-03, A-04, A-10</td></tr>
+  <tr><td>ADR-5</td><td>Pagination par curseur (createdAt, id), <code>limit</code> 1–100, filtres serveur, liste vide = 200</td><td>A-08, A-05</td></tr>
+</table>
+
+<h2>6. Alternatives et compromis</h2>
+<table>
+  <tr><th>Sujet</th><th>Alternative écartée</th><th>Bénéfice du choix</th><th>Coût accepté</th><th>Consommateurs touchés / risque résiduel</th></tr>
+  <tr><td>Tenant</td><td><code>X-Tenant</code> vérifié contre le jeton</td><td>Une seule source non falsifiable</td><td>Retrait de la configuration publique</td><td>Ops, Terrain, Portail : usage hors tenant coupé (non autorisé) ; risque : oubli de filtre (R-1)</td></tr>
+  <tr><td>Erreurs</td><td>Enveloppe <code>success:false</code> en 200</td><td>Outils HTTP et Front décident correctement</td><td>Réécriture de la gestion d'erreurs Ops/Terrain</td><td>v1 inchangée ; risque faible</td></tr>
+  <tr><td>Mutations</td><td>PUT complet ; PATCH générique avec statut</td><td>Rôles et effets séparés, idempotence de l'affectation</td><td>Trois routes au lieu d'une</td><td>Ops, Terrain ; risque : multiplication des routes en v3</td></tr>
+  <tr><td>Concurrence</td><td>Dernier écrit gagne ; verrou pessimiste ; révision dans le corps</td><td>Aucune perte silencieuse ; standard HTTP</td><td>Gestion du 412 dans chaque écran ; conflits entre changements indépendants</td><td>Ops, Terrain ; risque : taux de 412 (R-4)</td></tr>
+  <tr><td>Pagination</td><td>OFFSET <code>page/size</code></td><td>Ni doublon ni saut sous insertion ; coût constant</td><td>Pas d'accès direct à « page 7 » ; <code>totalItems</code> informatif</td><td>Ops, Terrain ; BI garde v1</td></tr>
+  <tr><td>Compatibilité</td><td>Correction en place ; big-bang ; conversion par écran</td><td>Une conversion unique, migration réversible</td><td>Deux contrats testés jusqu'au retrait</td><td>Portail, BI ; risque : H1 (R-2)</td></tr>
+  <tr><td>Statut v1</td><td>Émettre <code>CANCELLED</code> en v1</td><td>Pas de valeur inconnue pour un enum v1 fermé</td><td>Annulation lue « CLOSED » par un client qui ignore <code>statusDetail</code></td><td>Portail, BI ; perte documentée (H5)</td></tr>
+</table>
+
+<h2>7. Synthèse API</h2>
+<table>
+  <tr><th>Opération</th><th>Route v2</th><th>Rôles</th><th>Succès</th><th>Erreurs principales</th></tr>
+  <tr><td>Liste</td><td><code>GET /interventions?status&amp;siteId&amp;limit&amp;cursor&amp;sort</code></td><td>tous (technicien : ses affectations)</td><td>200 <code>{items, page}</code></td><td>400, 401</td></tr>
+  <tr><td>Détail</td><td><code>GET /interventions/{id}</code></td><td>tous selon visibilité</td><td>200 + ETag</td><td>401, 404</td></tr>
+  <tr><td>Création</td><td><code>POST /interventions</code></td><td>requester, planner</td><td>201 + Location + ETag</td><td>400, 401, 403, 415, 422</td></tr>
+  <tr><td>Modification</td><td><code>PATCH /interventions/{id}</code> + If-Match</td><td>requester (NEW), planner (NEW/ASSIGNED)</td><td>200 + ETag</td><td>403, 404, 409, 412, 422, 428</td></tr>
+  <tr><td>Affectation</td><td><code>PUT /interventions/{id}/assignment</code> + If-Match</td><td>planner</td><td>200 + ETag</td><td>403, 404, 409, 412, 422, 428</td></tr>
+  <tr><td>Historique</td><td><code>GET /interventions/{id}/events?limit&amp;cursor</code></td><td>tous selon visibilité</td><td>200 <code>{items, page}</code></td><td>400, 401, 404</td></tr>
+  <tr><td>(complément) Transitions</td><td><code>POST /interventions/{id}/transitions</code> + If-Match</td><td>technician (IN_PROGRESS, DONE), requester/planner (CANCELLED)</td><td>200 + ETag</td><td>403, 404, 409, 412, 422, 428</td></tr>
+</table>
+<p>Authentification <code>bearerAuth</code> (JWT du fournisseur d'identité). Le contrat complet, les schémas, les règles hors
+schéma, la table d'erreurs et la correspondance v1 → v2 sont dans <code>Contrat_API.yaml</code> et <code>Catalogue_REST.md</code>.</p>
+
+<h2>8. Vérifications et preuves</h2>
+<table>
+  <tr><th>Contrôle</th><th>Commande</th><th>Résultat réel</th><th>Ce que cela prouve, et ses limites</th></tr>
+  <tr><td>Preuves d'audit</td><td><code>python audit_preuves.py</code></td><td>17 écarts schéma v1 ; 17/17 motifs fautifs présents ; <code>node --check</code> OK ; total de liste non filtré par tenant (5 pour 4)</td><td>Objective les divergences entre pièces ; ne prouve pas un comportement serveur</td></tr>
+  <tr><td>Contrat</td><td><code>python validate_contract.py</code></td><td>OpenAPI 3.1.0 valide ; 6/6 opérations ; 21 exemples conformes et identiques aux fichiers ; 15/15 négatifs rejetés par la bonne règle</td><td>Analysabilité, références, cohérence exemples/schémas ; distingue rejet par schéma et rejet métier</td></tr>
+  <tr><td>Scénarios</td><td><code>python run_scenarios.py</code></td><td>18/18 conformes, 82 requêtes, 74 réponses v2 validées contre le contrat</td><td><b>Simulation</b> : contrat cohérent et réalisable ; pas le comportement du futur serveur</td></tr>
+  <tr><td>Contre-épreuve</td><td><code>python verifier_detection.py</code></td><td>9/9 défauts historiques détectés</td><td>Les tests ne sont pas complaisants</td></tr>
+  <tr><td>Concurrence réelle, signature JWT, rétention N03</td><td>revue de conception</td><td>—</td><td>À couvrir par des tests d'intégration PostgreSQL et IdP</td></tr>
+</table>
+<p>Versions : Python 3.13.2, openapi-spec-validator 0.9.0, jsonschema 4.26.0, PyYAML 6.0.3, Node v22.14.0. Sorties dans
+<code>Tests_et_Validations/resultats/</code> ; commande unique <code>python tout_verifier.py</code>.</p>
+<p><b>N04, méthode de mesure proposée (objectif non mesuré)</b> :</p>
+<ul>
+  <li>jeu de données de recette d'un an, soit environ 83 000 interventions sur 42 tenants, réparties de façon réaliste (dont un gros tenant) ;</li>
+  <li>tir de charge (outil libre de type k6) sur <code>GET /v2/interventions?limit=20</code> avec et sans filtres, pendant 15 minutes au débit de pointe estimé ;</li>
+  <li>p95 mesuré côté serveur, hors réseau client, plus <code>EXPLAIN ANALYZE</code> des requêtes keyset et <code>COUNT</code>.</li>
+</ul>
+<p>Facteurs de coût : <code>COUNT</code> de <code>totalItems</code>, couverture des index
+<code>(tenant_id, status, site_id, created_at, id)</code>, vérification du jeton (cache des clés publiques), sérialisation.
+Si le <code>COUNT</code> domine, <code>totalItems</code> peut devenir facultatif (ADR-5).</p>
+
+<h2>9. Risques, dépendances et hypothèses</h2>
+<p><b>Dépendances</b> :</p>
+<ul>
+  <li>le fournisseur d'identité doit émettre les claims <code>tenant_id</code>, <code>role</code> et <code>technician_id</code> (H7) ;</li>
+  <li>l'équipe plateforme doit révoquer la vue SQL et purger les journaux ;</li>
+  <li>les propriétaires de Portail et de BI doivent fournir des réponses de référence de l'adaptateur (H1) ;</li>
+  <li>la direction doit valider les dates et l'annonce des restrictions v1.</li>
+</ul>
+<table>
+  <tr><th>Hyp.</th><th>Énoncé</th><th>Preuves</th><th>Impact si fausse</th><th>Levée</th></tr>
+  <tr><td>H1</td><td>Le format servi par l'adaptateur au Portail est conservé tel quel ; seule sa source change</td><td>P05 « champs historiques français », aucune capture</td><td>Régression Portail</td><td>Golden files avant rebranchement</td></tr>
+  <tr><td>H2</td><td>Priorité numérique 1/2/3 = LOW/NORMAL/HIGH</td><td>I101 <code>priority: 2</code> ; INC-09 « conversion non publiée »</td><td>Priorités migrées fausses</td><td>Confirmation par l'équipe BI et le code d'export</td></tr>
+  <tr><td>H3</td><td><code>"20/10/2026 10:00"</code> est en heure locale Europe/Paris</td><td>P06 « zone locale du serveur »</td><td>Ordre et affichage décalés de 2 h</td><td>Journaux serveur de création de I101</td></tr>
+  <tr><td>H4</td><td>Le support lit l'historique avec un compte planner ou reporter du tenant ; un technicien réaffecté perd la visibilité</td><td>P02 comptes par tenant, R06</td><td>Rôle support à créer</td><td>Décision produit</td></tr>
+  <tr><td>H5</td><td>En v1, CANCELLED est exposé CLOSED + <code>statusDetail</code> ; les autres statuts restent tels qu'observés</td><td>P02, P06, P09, captures</td><td>Portail affiche « terminée » pour une annulation</td><td>Test de contrat par consommateur</td></tr>
+  <tr><td>H6</td><td>Là où wiki et captures divergent, la référence v1 est le comportement observé</td><td>P01 (captures à recouper), M1</td><td>Gel d'un format non utilisé</td><td>Golden files</td></tr>
+  <tr><td>H7</td><td>Le jeton porte <code>tenant_id</code>, <code>role</code>, <code>technician_id</code></td><td>P09 « le résultat validé porte tenant et rôle »</td><td>Enrichissement serveur nécessaire</td><td>Équipe identité</td></tr>
+</table>
+<p>Registre complet des risques : annexe B.</p>
+
+<h2>10. Retour critique sur la démarche</h2>
+<ul>
+  <li><b>Ce qui a fonctionné</b> : suivre des identifiants précis (I101, T02) à travers données, captures et code a fait
+  apparaître des causes communes (A-03 explique INC-03, 07 et 10 ; A-02 explique la réouverture de I103). Le
+  regroupement évite de gonfler le nombre de problèmes.</li>
+  <li><b>Erreurs corrigées</b> :
+    <ol>
+      <li>Un exemple négatif « titre trop court » était en fait valide (5 caractères utiles).</li>
+      <li>Le simulateur n'attribuait pas les erreurs à leur opération : les réponses d'erreur échappaient à la
+      validation contre le contrat alors que le bilan affichait 18/18.</li>
+      <li>La contre-épreuve a révélé qu'aucun scénario ne testait un <code>X-Tenant</code> falsifié à la création (8/9, puis 9/9).</li>
+      <li>La relecture du 12/11 a trouvé un constat manqué : le <code>total: 5</code> de <code>liste.http</code> pour un
+      tenant qui n'a que 4 interventions. Il est ajouté à A-01 et contrôlé par <code>audit_preuves.py</code>.</li>
+      <li>La même relecture a montré que des fichiers du dossier (dont le contrat et les scripts) avaient disparu
+      après la première session. Ils ont été restaurés depuis une copie, puis tous les contrôles ont été rejoués.</li>
+    </ol>
+    Leçon : un « test réussi » doit lui-même être mis à l'épreuve, et un dossier doit être versionné.</li>
+  <li><b>Outils et IA</b> : un assistant IA (Claude) a aidé à la synthèse et à la rédaction. Tout constat a été relu contre
+  sa pièce, et tout résultat chiffré provient d'une commande réelle (<code>Sources_et_IA.md</code>). Les consignes
+  piégées insérées dans les pièces ont été identifiées et traitées comme des constats.</li>
+  <li><b>Limites</b> : aucune base réelle ni serveur. Concurrence réelle, performance N04 et rétention N03 relèvent de la
+  revue de conception. Le format de l'adaptateur Portail est inconnu (H1).</li>
+  <li><b>Suite recommandée</b> : appliquer la phase 0 (sécurité) sans attendre la v2 ; brancher les 18 scénarios sur le
+  vrai serveur comme tests de contrat en intégration continue.</li>
+</ul>
+
+<section class="annexe">
+<h2>Annexe A — Tableau d'audit</h2>
+<table>
+<tr><th>ID</th><th>Preuves (pièce · élément)</th><th>Observation reproductible (fait)</th><th>Conséquence</th><th>Criticité</th><th>Cause probable (hypothèse)</th><th>Correction proposée</th><th>Justification</th><th>Non-régression</th><th>Statut</th></tr>
+<tr><td>A-01</td><td>T08 isolement.http ; T05 liste.http ; T01 interventions.json ; T09 back.mjs detail/create ; T10 config-demo.json ; T09 front.mjs fastList ; P05 ; P08 M3 ; INC-06</td><td>U01 + <code>X-Tenant: C02</code> → 200 avec le contenu de I200 ; liste C01 avec <code>total: 5</code> pour 4 interventions C01 ; <code>byId</code> sans tenant ; tenant et chaîne SQL dans une configuration publique</td><td>Lecture et création hors tenant ; contournement de l'API</td><td>Critique (P0 confirmé)</td><td>Claims du jeton non utilisés ; confiance dans l'en-tête ; vue SQL non cartographiée</td><td>Tenant depuis le jeton ; filtre en requête ; 404 indiscernable ; révocation SQL ; FK composites</td><td>P09 : un en-tête n'est pas une preuve ; R07, R12</td><td>S01, S07, S08 ; mutation « visibilité sans tenant », « tenant via X-Tenant »</td><td>Proposée, phase 0</td></tr>
+<tr><td>A-03</td><td>T07 affectation.http ; T08 historique.http ; T09 back.mjs assign ; T02 techniciens.json ; P05 séquence ; INC-03/07/10 ; P08 M5</td><td>GET T02 (C02) → 200 OK ; contrôle d'existence seul ; 3 écritures séparées ; 2 événements identiques</td><td>Affectation inter-tenant ou inactive ; mutations par préchargement ; états partiels</td><td>Critique (P1 → P0)</td><td>Action exposée en GET ; pas de transaction ; pas d'idempotence</td><td>PUT <code>/assignment</code> + If-Match ; contrôles tenant et actif ; transaction unique ; 410 sur l'ancienne route</td><td>RFC 9110 §9.2.1 et §9.2.2 ; R05, R09, R12</td><td>S13, S11, S12 ét. 5 ; mutations INC-07, INC-03/10</td><td>Proposée, phases 0 et 2</td></tr>
+<tr><td>A-09</td><td>T09 back.mjs <code>log.info</code> ; T10 <code>logAuthorization</code> ; P09 ; INC-10</td><td>Authorization et titre écrits dans le journal</td><td>Vol de session ; données libres hors rétention</td><td>Haute</td><td>Diagnostic support sans corrélation</td><td>Journal minimal + X-Correlation-Id ; purge et rotation</td><td>N03, P09</td><td>S18 ; mutation N03</td><td>Proposée, phase 0</td></tr>
+<tr><td>A-02</td><td>P05 répartition ; T09 back.mjs create/update ; P08 M2/M4 ; INC-04 (I103)</td><td>Le serveur accepte statut et titre sans règle ; I103 DONE rouvert</td><td>R02, R03, R04 contournables</td><td>Haute</td><td>« L'API enregistre ce que l'écran a validé »</td><td>Validation et transitions serveur ; route <code>/transitions</code></td><td>N05 ; DEMARRER (navigateur non sûr)</td><td>S05, S10, S14, S17 ; mutation R02</td><td>Proposée</td></tr>
+<tr><td>A-04</td><td>T07 modification.http ; T08 concurrence.http ; T09 back.mjs update ; P08 M4 ; INC-04, INC-08</td><td>PUT du titre → <code>technicianId=null</code> ; second PUT en révision 2 accepté</td><td>Pertes silencieuses</td><td>Haute</td><td><code>|| null</code> ; révision ignorée</td><td>PATCH titre/priorité (absent = conservé) ; If-Match obligatoire</td><td>R10, R11 ; RFC 9110 §13.1.1</td><td>S06, S11 ; mutations INC-04, INC-08</td><td>Proposée</td></tr>
+<tr><td>A-07</td><td>T05 liste.http ; T06 creation.http ; T03 JSON ; T09 front.mjs load/back.mjs create ; T12 openapi-initial ; P06 ; P08 M1 ; INC-01/02</td><td>Enveloppe non annoncée ; page 0 → 1 ; label/site_id contre title/siteId ; 200 contre 201</td><td>Écrans cassés ; créations corrompues</td><td>Haute</td><td>Pas de versionnement ni de test de contrat</td><td>v2 versionnée ; v1 gelée et documentée ; tests de contrat</td><td>P01 (développement indépendant) ; N02</td><td>validate_contract ; S01, S12</td><td>Proposée</td></tr>
+<tr><td>A-05</td><td>T06 detail.http ; T05 vide.http ; T09 assign ; P06 ; P08 M2</td><td>Erreurs en 200, texte ou 404 pour liste vide</td><td>Front sans réaction précise ; outils HTTP trompés</td><td>Haute</td><td>Convention historique « tester success »</td><td>RFC 9457 + <code>code</code> + <code>errors[]</code> + correlationId</td><td>P04 ateliers ; RFC 9457</td><td>74 réponses validées ; S02, S05</td><td>Proposée</td></tr>
+<tr><td>A-10</td><td>T08 historique.http ; P05 séquence ; P06 historique ; INC-10</td><td>Doublons, absence de révision, trous après échec</td><td>Historique inexploitable</td><td>Haute</td><td>Écritures séparées ; aucune règle d'événement</td><td>Événement transactionnel avec révision ; lecture paginée</td><td>R09, U4</td><td>S11, S13, S15</td><td>Proposée</td></tr>
+<tr><td>A-06</td><td>T01 interventions.json ; T04 detail-reponse.json ; T11 schéma v1 ; INC-09</td><td>17 écarts schéma v1 ; date jj/mm ; priorité 2 ; révisions incohérentes (I100, I103)</td><td>Clients générés et BI en échec ; tri faux</td><td>Moyenne</td><td>Schéma non synchronisé ; données saisies hors règles</td><td>Types v2 ; migration avec H2/H3 confirmées</td><td>R01 ; MATRICE_AUDIT (id opaque)</td><td>validate_contract ; fixtures/README</td><td>Proposée, H2/H3 à confirmer</td></tr>
+<tr><td>A-08</td><td>P06 liste ; T09 front.mjs load ; T05 vide.http ; T01 createdAt ; P08 M1 ; INC-05</td><td>Filtre site local ; aucun ordre ; doublons entre pages</td><td>File incomplète ; navigation fausse</td><td>Moyenne</td><td>Ordre non spécifié ; conversion de page cachée</td><td>Curseur, ordre (createdAt, id), filtres serveur</td><td>R08 ; U4</td><td>S02, S03, S04 ; mutation INC-05</td><td>Proposée</td></tr>
+<tr><td>A-11</td><td>T09 front.mjs create ; T06 creation.http ; INC-02 ; U1</td><td><code>priority: 'HIGH'</code> en dur ; <code>body.id</code> lu, absent de la réponse</td><td>Priorités faussées ; navigation impossible</td><td>Moyenne</td><td>Formulaire non aligné sur le contrat</td><td>Envoi conditionnel de priority ; suivre Location</td><td>R02 (défaut NORMAL)</td><td>Revue + test consommateur (non simulé)</td><td>Proposée</td></tr>
+</table>
+
+<h2>Annexe B — Registre des risques</h2>
+<table>
+<tr><th>ID</th><th>Risque</th><th>Probabilité</th><th>Impact</th><th>Mesure</th><th>Responsable proposé</th><th>Risque résiduel</th></tr>
+<tr><td>R-1</td><td>Nouvelle requête oubliant le filtre <code>tenant_id</code></td><td>Faible</td><td>Critique</td><td>Prédicat centralisé ; S08 en intégration continue ; RLS PostgreSQL en défense en profondeur</td><td>Responsable Back (Bastien)</td><td>Faible</td></tr>
+<tr><td>R-2</td><td>Régression Portail au rebranchement de l'adaptateur (H1)</td><td>Moyenne</td><td>Haute</td><td>Golden files par route ; tenant pilote ; retour arrière</td><td>Plateforme (Hugo)</td><td>Faible</td></tr>
+<tr><td>R-3</td><td>BI ou Portail à enum fermé (IN_PROGRESS, nouveaux <code>kind</code>)</td><td>Moyenne</td><td>Moyenne</td><td>Test de contrat par consommateur ; table de conversion dans l'adaptateur</td><td>Propriétaire Export BI</td><td>Faible</td></tr>
+<tr><td>R-4</td><td>Taux de 412 élevé, gêne des planificateurs</td><td>Moyenne</td><td>Moyenne</td><td>Mesure pendant l'observation ; écran de comparaison ; seuil de réexamen 5 %</td><td>Front Ops (Élodie)</td><td>Faible</td></tr>
+<tr><td>R-5</td><td>H2 ou H3 fausses, données migrées erronées</td><td>Moyenne</td><td>Moyenne</td><td>Confirmation dans les journaux avant conversion ; marquage des valeurs converties</td><td>Plateforme + Produit (Inès)</td><td>Faible</td></tr>
+<tr><td>R-6</td><td>Adaptateur v1 jamais retiré</td><td>Moyenne</td><td>Faible</td><td>Métrique de trafic par route ; date inscrite ; critère de retrait (ADR-3)</td><td>Plateforme</td><td>Faible</td></tr>
+<tr><td>R-7</td><td>Identifiants de la vue SQL déjà copiés et exploités</td><td>Élevée</td><td>Critique</td><td>Révocation immédiate ; retrait de la configuration ; revue des accès à la vue</td><td>Plateforme</td><td>Faible</td></tr>
+<tr><td>R-8</td><td>Terrain hors ligne renvoie des intentions anciennes</td><td>Élevée</td><td>Faible</td><td>412 + file locale « en attente » (U3)</td><td>Terrain (Samir)</td><td>Faible</td></tr>
+<tr><td>R-9</td><td>N04 non atteint (COUNT, index)</td><td>Faible</td><td>Moyenne</td><td>Mesure §8 ; index composites ; <code>totalItems</code> facultatif si besoin</td><td>Back</td><td>Faible</td></tr>
+<tr><td>R-10</td><td>Jetons déjà présents dans les journaux et tickets support</td><td>Certaine</td><td>Haute</td><td>Purge ; rotation des clés de signature ; consigne support (correlationId)</td><td>Support (Salomé) + Plateforme</td><td>Faible</td></tr>
+<tr><td>R-11</td><td>Contenu inter-tenant déjà divulgué (INC-06)</td><td>Certaine</td><td>Haute</td><td>Analyse des accès ; information des clients selon la politique ATLAS (revue DPO réelle nécessaire, N03)</td><td>Direction des opérations</td><td>Moyen</td></tr>
+<tr><td>R-12</td><td>Fermeture de <code>/api/assign</code> avant la migration d'Ops</td><td>Faible</td><td>Haute</td><td>Critère d'entrée de la phase 2 : trafic nul 7 jours</td><td>Plateforme</td><td>Faible</td></tr>
+<tr><td>R-13</td><td>Entre la phase 0 et la phase 2, <code>GET /api/assign</code> reste ouvert : un préchargement d'un lien vers un <b>autre</b> technicien réaffecte encore (la phase 0 ne supprime que les doublons)</td><td>Faible</td><td>Moyenne</td><td>Migration d'Ops en tête de phase 1 ; liens d'affectation retirés des courriels et des écrans dès la phase 0 ; surveillance des appels de cette route</td><td>Front Ops (Élodie) + Plateforme</td><td>Faible</td></tr>
+</table>
+<footer class="doc">ATLAS — Rapport d'audit — Paul Mehr — environnement fictif, sans donnée réelle.</footer>
+</section>
+
+</body>
+</html>

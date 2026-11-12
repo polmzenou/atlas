@@ -1,0 +1,7 @@
+{
+  "type": "https://api.atlas.invalid/problems/not-found",
+  "title": "Intervention introuvable",
+  "status": 404,
+  "code": "NOT_FOUND",
+  "correlationId": "corr-0004"
+}

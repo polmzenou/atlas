@@ -1,0 +1,7 @@
+{
+  "type": "https://api.atlas.invalid/problems/unauthenticated",
+  "title": "Authentification requise",
+  "status": 401,
+  "code": "UNAUTHENTICATED",
+  "correlationId": "corr-0002"
+}

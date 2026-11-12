@@ -1,0 +1,15 @@
+{
+  "type": "https://api.atlas.invalid/problems/invalid-parameter",
+  "title": "Paramètre invalide",
+  "status": 400,
+  "code": "INVALID_PARAMETER",
+  "detail": "limit doit être compris entre 1 et 100.",
+  "correlationId": "corr-0001",
+  "errors": [
+    {
+      "field": "limit",
+      "code": "OUT_OF_RANGE",
+      "message": "Valeur entre 1 et 100."
+    }
+  ]
+}

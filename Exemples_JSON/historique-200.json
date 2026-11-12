@@ -1,0 +1,75 @@
+{
+  "items": [
+    {
+      "eventId": "E100-1",
+      "interventionId": "I100",
+      "revision": 1,
+      "type": "CREATED",
+      "at": "2026-10-20T08:00:00Z",
+      "actor": {
+        "userId": "U02",
+        "role": "planner"
+      },
+      "changes": [
+        {
+          "field": "status",
+          "from": null,
+          "to": "NEW"
+        },
+        {
+          "field": "priority",
+          "from": null,
+          "to": "NORMAL"
+        },
+        {
+          "field": "title"
+        }
+      ]
+    },
+    {
+      "eventId": "E100-2",
+      "interventionId": "I100",
+      "revision": 2,
+      "type": "UPDATED",
+      "at": "2026-10-20T08:00:00Z",
+      "actor": {
+        "userId": "U02",
+        "role": "planner"
+      },
+      "changes": [
+        {
+          "field": "title"
+        }
+      ]
+    },
+    {
+      "eventId": "E100-3",
+      "interventionId": "I100",
+      "revision": 3,
+      "type": "ASSIGNED",
+      "at": "2026-10-27T09:00:01Z",
+      "actor": {
+        "userId": "U02",
+        "role": "planner"
+      },
+      "changes": [
+        {
+          "field": "technicianId",
+          "from": null,
+          "to": "T01"
+        },
+        {
+          "field": "status",
+          "from": "NEW",
+          "to": "ASSIGNED"
+        }
+      ]
+    }
+  ],
+  "page": {
+    "limit": 50,
+    "hasNext": false,
+    "nextCursor": null,
+    "totalItems": 3
+  }
+}

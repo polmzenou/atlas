@@ -1,0 +1,8 @@
+{
+  "type": "https://api.atlas.invalid/problems/forbidden",
+  "title": "Action non autorisée",
+  "status": 403,
+  "code": "FORBIDDEN",
+  "detail": "Le rôle reporter ne peut pas modifier une intervention.",
+  "correlationId": "corr-0003"
+}

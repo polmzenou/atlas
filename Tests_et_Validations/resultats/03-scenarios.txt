@@ -1,0 +1,23 @@
+$ python run_scenarios.py
+# 2026-11-12 14:11:54 UTC | Python 3.13.2 | node v22.14.0 | code retour 0
+
+✅ S01 Chemin nominal : Lina crée puis retrouve sa demande (U1)
+✅ S02 Liste vide : site S03 sans demande (INC-05)
+✅ S03 Filtre combiné statut ET site appliqué par le serveur (U4)
+✅ S04 Bornes de pagination et stabilité sous insertion (U4)
+✅ S05 Saisie invalide : règle métier ≠ JSON mal formé (U1)
+✅ S06 Champ absent / null en modification partielle (INC-04)
+✅ S07 Session invalide
+✅ S08 Accès hors tenant : aucune divulgation (INC-06, U3)
+✅ S09 Permission insuffisante sur une ressource visible
+✅ S10 Transitions interdites et états terminaux
+✅ S11 Concurrence : deux planificateurs à la même révision (U2, INC-08)
+✅ S12 Continuité v1 : Portail et Export BI sécurisés (N01)
+✅ S13 Affectation : référentiel, atomicité, idempotence (INC-03, INC-07, INC-10)
+✅ S14 Terrain : cycle du technicien (U3)
+✅ S15 Historique : lecture, pagination et droits (U4)
+✅ S16 Reprise après coupure réseau : clé d'idempotence (U1, approfondissement 1)
+✅ S17 Annulation par la demandeuse puis tentative d'affectation
+✅ S18 Journaux techniques sans secret ni texte libre (N03, P09)
+
+BILAN : 18/18 scénarios conformes (82 requêtes).

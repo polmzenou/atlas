@@ -1,0 +1,97 @@
+$ python validate_contract.py
+# 2026-11-12 14:11:54 UTC | Python 3.13.2 | node v22.14.0 | code retour 0
+
+Python 3.13.2 | openapi-spec-validator 0.9.0 | jsonschema 4.26.0 | PyYAML 6.0.3
+
+[1] Structure OpenAPI 3.1
+  OK   document 3.1.0 valide, références résolues
+
+[2] Socle des six opérations
+  OK   listInterventions GET /interventions réponses=['200', '400', '401']
+  OK   getIntervention GET /interventions/{interventionId} réponses=['200', '401', '404']
+  OK   createIntervention POST /interventions réponses=['201', '400', '401', '403', '415', '422']
+  OK   updateIntervention PATCH /interventions/{interventionId} réponses=['200', '400', '401', '403', '404', '409', '412', '415', '422', '428']
+  OK   assignIntervention PUT /interventions/{interventionId}/assignment réponses=['200', '400', '401', '403', '404', '409', '412', '415', '422', '428']
+  OK   listInterventionEvents GET /interventions/{interventionId}/events réponses=['200', '400', '401', '404']
+  OK   sécurité globale bearerAuth déclarée
+
+[3] Exemples inline : schéma + identité avec Exemples_JSON
+  OK   listInterventions 200 « filtreCombine » conforme au schéma
+  OK   listInterventions 200 « filtreCombine » identique à Exemples_JSON/liste-200-filtre.json
+  OK   listInterventions 200 « vide » conforme au schéma
+  OK   listInterventions 200 « vide » identique à Exemples_JSON/liste-200-vide.json
+  OK   createIntervention requête « lina » conforme au schéma
+  OK   createIntervention requête « lina » identique à Exemples_JSON/creation-requete.json
+  OK   createIntervention 201 « creee » conforme au schéma
+  OK   createIntervention 201 « creee » identique à Exemples_JSON/creation-201.json
+  OK   getIntervention 200 « i101 » conforme au schéma
+  OK   getIntervention 200 « i101 » identique à Exemples_JSON/detail-200.json
+  OK   updateIntervention requête « priorite » conforme au schéma
+  OK   updateIntervention requête « priorite » identique à Exemples_JSON/modification-requete.json
+  OK   updateIntervention 200 « modifiee » conforme au schéma
+  OK   updateIntervention 200 « modifiee » identique à Exemples_JSON/modification-200.json
+  OK   assignIntervention requête « t01 » conforme au schéma
+  OK   assignIntervention requête « t01 » identique à Exemples_JSON/affectation-requete.json
+  OK   assignIntervention 200 « affectee » conforme au schéma
+  OK   assignIntervention 200 « affectee » identique à Exemples_JSON/affectation-200.json
+  OK   transitionIntervention requête « demarrer » conforme au schéma
+  OK   transitionIntervention requête « demarrer » identique à Exemples_JSON/transition-requete.json
+  OK   transitionIntervention 200 « demarree » conforme au schéma
+  OK   transitionIntervention 200 « demarree » identique à Exemples_JSON/transition-200.json
+  OK   listInterventionEvents 200 « i100 » conforme au schéma
+  OK   listInterventionEvents 200 « i100 » identique à Exemples_JSON/historique-200.json
+  OK   components/responses/BadRequest « limite » conforme au schéma
+  OK   components/responses/BadRequest « limite » identique à Exemples_JSON/erreur-400-limit.json
+  OK   components/responses/Unauthorized « sansJeton » conforme au schéma
+  OK   components/responses/Unauthorized « sansJeton » identique à Exemples_JSON/erreur-401.json
+  OK   components/responses/Forbidden « reporter » conforme au schéma
+  OK   components/responses/Forbidden « reporter » identique à Exemples_JSON/erreur-403.json
+  OK   components/responses/NotFound « introuvable » conforme au schéma
+  OK   components/responses/NotFound « introuvable » identique à Exemples_JSON/erreur-404.json
+  OK   components/responses/Conflict « terminal » conforme au schéma
+  OK   components/responses/Conflict « terminal » identique à Exemples_JSON/erreur-409.json
+  OK   components/responses/PreconditionFailed « perime » conforme au schéma
+  OK   components/responses/PreconditionFailed « perime » identique à Exemples_JSON/erreur-412.json
+  OK   components/responses/PreconditionRequired « manquant » conforme au schéma
+  OK   components/responses/PreconditionRequired « manquant » identique à Exemples_JSON/erreur-428.json
+  OK   components/responses/ValidationFailed « titre » conforme au schéma
+  OK   components/responses/ValidationFailed « titre » identique à Exemples_JSON/erreur-422-titre.json
+  OK   components/responses/ValidationFailed « technicien » conforme au schéma
+  OK   components/responses/ValidationFailed « technicien » identique à Exemples_JSON/erreur-422-technicien.json
+
+[4] Exemples négatifs : bonne règle de rejet
+  OK   negatifs/creation-titre-espaces.json : schéma InterventionCreate rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions → 422 [['title', 'INVALID_LENGTH']] sans effet persistant (R02 titre composé d'espaces)
+  OK   negatifs/creation-titre-court-apres-trim.json : schéma InterventionCreate rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions → 422 [['title', 'INVALID_LENGTH']] sans effet persistant (R02 longueur évaluée après suppression des espaces (8 caractères bruts, 4 utiles))
+  OK   negatifs/creation-champs-serveur.json : schéma InterventionCreate rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions → 422 [['status', 'UNKNOWN_FIELD'], ['tenantId', 'UNKNOWN_FIELD']] sans effet persistant (R03 tenant et statut fixés par le serveur)
+  OK   negatifs/creation-priorite-urgent.json : schéma InterventionCreate rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions → 422 [['priority', 'INVALID_VALUE']] sans effet persistant (R02 priorité LOW|NORMAL|HIGH (P06 évoquait « urgent »))
+  OK   negatifs/creation-noms-historiques.json : schéma InterventionCreate rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions → 422 [['label', 'UNKNOWN_FIELD'], ['site_id', 'UNKNOWN_FIELD'], ['title', 'REQUIRED'], ['siteId', 'REQUIRED']] sans effet persistant (INC-02 noms label/site_id du contrôleur historique)
+  OK   negatifs/creation-site-autre-tenant.json : schéma InterventionCreate accepté (attendu accepté)
+  OK      rejeu POST /v2/interventions → 422 [['siteId', 'SITE_NOT_FOUND']] sans effet persistant (R12 site d'un autre tenant : forme correcte, rejet par contrôle de référentiel)
+  OK   negatifs/modification-priorite-null.json : schéma InterventionPatch rejeté (attendu rejeté)
+  OK      rejeu PATCH /v2/interventions/I100 → 422 [['priority', 'NULL_NOT_ALLOWED']] sans effet persistant (R11 null refusé)
+  OK   negatifs/modification-technicien-null.json : schéma InterventionPatch rejeté (attendu rejeté)
+  OK      rejeu PATCH /v2/interventions/I101 → 422 [['technicianId', 'FIELD_NOT_MODIFIABLE']] sans effet persistant (R11 / INC-04 l'affectation ne se modifie pas par PATCH)
+  OK   negatifs/modification-statut.json : schéma InterventionPatch rejeté (attendu rejeté)
+  OK      rejeu PATCH /v2/interventions/I100 → 422 [['status', 'FIELD_NOT_MODIFIABLE']] sans effet persistant (R04 / INC-04 statut seulement via /transitions (réouverture de I103))
+  OK   negatifs/modification-vide.json : schéma InterventionPatch rejeté (attendu rejeté)
+  OK      rejeu PATCH /v2/interventions/I100 → 422 [['body', 'EMPTY_PATCH']] sans effet persistant (PATCH sans champ)
+  OK   negatifs/affectation-technicien-autre-tenant.json : schéma AssignmentRequest accepté (attendu accepté)
+  OK      rejeu PUT /v2/interventions/I100/assignment → 422 [['technicianId', 'TECHNICIAN_NOT_FOUND']] sans effet persistant (R05 / INC-07 technicien T02 de C02)
+  OK   negatifs/affectation-technicien-inactif.json : schéma AssignmentRequest accepté (attendu accepté)
+  OK      rejeu PUT /v2/interventions/I100/assignment → 422 [['technicianId', 'TECHNICIAN_INACTIVE']] sans effet persistant (R05 / INC-07 technicien T03 inactif)
+  OK   negatifs/affectation-retrait.json : schéma AssignmentRequest rejeté (attendu rejeté)
+  OK      rejeu PUT /v2/interventions/I101/assignment → 422 [['technicianId', 'NULL_NOT_ALLOWED']] sans effet persistant (R11 retrait sans remplacement non demandé)
+  OK   negatifs/transition-retour-new.json : schéma TransitionRequest rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions/I101/transitions → 422 [['to', 'INVALID_VALUE']] sans effet persistant (R04 aucun retour arrière)
+  OK   negatifs/transition-assigned.json : schéma TransitionRequest rejeté (attendu rejeté)
+  OK      rejeu POST /v2/interventions/I100/transitions → 422 [['to', 'INVALID_VALUE']] sans effet persistant (R04 ASSIGNED uniquement par affectation)
+
+[5] Couverture des fichiers d'exemples
+  OK   36 fichiers, tous référencés
+
+RÉSULTAT : CONFORME
