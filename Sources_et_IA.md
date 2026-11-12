@@ -41,10 +41,6 @@ données du dossier ATLAS sont fictives (domaine `.invalid`, jetons `DEMO`).
    pouvoir les défendre à l'oral sans support.
 3. **Génération des outils de test** : simulateur `atlas_mock.py`, scénarios, validateurs.
    Les sorties archivées dans `resultats/` sont les sorties réelles de ces scripts.
-4. **Relecture complète du 12/11/2026** (Claude, via l'application Claude Code) : confrontation du
-   sujet entier et du dossier rendu, pièce par pièce. Elle a révélé un constat d'audit manqué et des
-   fichiers perdus (tableau §4, lignes 6 et 7). J'ai vérifié le constat dans `liste.http` et
-   `interventions.json` avant de l'intégrer, puis rejoué tous les contrôles.
 
 **Contrôles effectués après génération.**
 - Validation structurelle et sémantique outillée (`validate_contract.py`), rejeu de
